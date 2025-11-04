@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- Intel RealSense D435 Camera Properties -->
+  <xacro:property name="realsense_cam_width" value="0.090"/>
+  <xacro:property name="realsense_cam_height" value="0.025"/>
+  <xacro:property name="realsense_cam_depth" value="0.025"/>
+  <xacro:property name="realsense_cam_mass" value="0.072"/>
+
+  <material name="realsense_aluminum">
+    <color rgba="0.5 0.5 0.5 1.0"/>
+  </material>
+
+  <!-- Camera Link -->
+  <joint name="camera_joint" type="fixed">
+    <origin xyz="0.175 0 0.065" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+  </joint>
+
+  <link name="camera_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${realsense_cam_depth} ${realsense_cam_width} ${realsense_cam_height}"/>
+      </geometry>
+      <material name="realsense_aluminum"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${realsense_cam_depth} ${realsense_cam_width} ${realsense_cam_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="${realsense_cam_mass}"/>
+      <inertia
+        ixx="0.000003881" ixy="0.0" ixz="0.0"
+        iyy="0.000000410" iyz="0.0"
+        izz="0.000003881"/>
+    </inertial>
+  </link>
+
+  <!-- Camera Depth Optical Frame -->
+  <joint name="camera_depth_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+    <parent link="camera_link"/>
+    <child link="camera_depth_frame"/>
+  </joint>
+
+  <link name="camera_depth_frame"/>
+
+  <joint name="camera_depth_optical_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="camera_depth_frame"/>
+    <child link="camera_depth_optical_frame"/>
+  </joint>
+
+  <link name="camera_depth_optical_frame"/>
+
+  <!-- Camera Color Optical Frame -->
+  <joint name="camera_color_joint" type="fixed">
+    <origin xyz="0 0.015 0" rpy="0 0 0"/>
+    <parent link="camera_depth_frame"/>
+    <child link="camera_color_frame"/>
+  </joint>
+
+  <link name="camera_color_frame"/>
+
+  <joint name="camera_color_optical_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="camera_color_frame"/>
+    <child link="camera_color_optical_frame"/>
+  </joint>
+
+  <link name="camera_color_optical_frame"/>
+
+</robot>

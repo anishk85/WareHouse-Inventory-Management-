@@ -15,7 +15,15 @@ mecanum_drive_controller:
     front_right_wheel_command_joint_name: "upper_right_wheel_joint"
     rear_left_wheel_command_joint_name: "lower_left_wheel_joint"
     rear_right_wheel_command_joint_name: "lower_right_wheel_joint"
+    
+    wheel_separation_x: 0.30   # Distance between front and rear axles (m)
+    wheel_separation_y: 0.216  # Distance between left and right wheels (m)
+    wheel_radius: 0.050        # Wheel radius (m)
 
+    # Wheel separation multipliers (for fine-tuning)
+    wheel_separation_x_multiplier: 1.0
+    wheel_separation_y_multiplier: 1.0
+    wheel_radius_multiplier: 1.0
     # Kinematics parameters
     kinematics:
       base_frame_offset:

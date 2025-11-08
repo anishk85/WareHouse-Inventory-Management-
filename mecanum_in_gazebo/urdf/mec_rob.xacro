@@ -1,10 +1,17 @@
 <?xml version="1.0" ?>
 <robot name="mec_rob" xmlns:xacro="http://www.ros.org/wiki/xacro">
-
-<!-- Use relative includes so xacro resolves files when run from ROS2 launch -->
+<xacro:include filename="$(find mecanum_in_gazebo)/urdf/mec_rob.ros2_control.xacro"/>
+<xacro:include filename="lidar.xacro" />
+<xacro:include filename="lidar.gazebo" />
+<xacro:include filename="depth_camera.xacro" />
+<xacro:include filename="depth_camera.gazebo" />
 <xacro:include filename="materials.xacro" />
 <xacro:include filename="mec_rob.trans" />
 <xacro:include filename="mec_rob.gazebo" />
+<xacro:include filename="imu.gazebo" />
+<xacro:include filename="imu.urdf.xacro" />
+
+
 <link name="base_link">
   <inertial>
     <origin xyz="6.760415092149816e-05 -2.9513096198865094e-17 2.0788276408363705e-05" rpy="0 0 0"/>
@@ -1145,5 +1152,24 @@
   <child link="roller_33_1"/>
   <axis xyz="-0.125122 -0.693402 -0.709604"/>
 </joint>
+
+<xacro:lidar_sensor parent="base_link" name="lidar">
+  <origin xyz="0 0 0.08" rpy="0 0 0"/>
+</xacro:lidar_sensor>
+
+<xacro:lidar_gazebo name="lidar"/>
+
+<xacro:depth_camera_sensor parent="base_link" name="camera">
+  <origin xyz="0.15 0 0.05" rpy="0 0 0"/>
+</xacro:depth_camera_sensor>
+
+<xacro:depth_camera_gazebo name="camera"/>
+
+<xacro:imu_sensor parent="base_link" name="imu">
+  <origin xyz="-0.05 0 0.02" rpy="0 0 0"/>
+</xacro:imu_sensor>
+
+<xacro:imu_gazebo name="imu"/>
+
 
 </robot>

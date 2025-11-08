@@ -8,23 +8,26 @@ from launch.actions import (
     DeclareLaunchArgument, 
     IncludeLaunchDescription, 
     SetEnvironmentVariable,
-    TimerAction
+    TimerAction,
+    RegisterEventHandler
 )
+from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, Command
 from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    # Package Directories
+
     pkg_share = get_package_share_directory('mecanum_in_gazebo')
     pkg_gazebo_ros = get_package_share_directory('gazebo_ros')
     
-    # Paths
+
     urdf_file = os.path.join(pkg_share, 'urdf', 'mec_rob.xacro')
     world_file = os.path.join(pkg_share, 'arena', 'arena.world')
+    controller_config = os.path.join(pkg_share, 'launch', 'controller.yaml')
     
-    # Set Gazebo model path
+
     gazebo_models_path = os.path.join(pkg_share, 'meshes')
     arena_models_path = os.path.join(pkg_share, 'arena')
     set_gazebo_model_path = SetEnvironmentVariable(
@@ -32,20 +35,20 @@ def generate_launch_description():
         gazebo_models_path + ':' + arena_models_path + ':' + os.environ.get('GAZEBO_MODEL_PATH', '')
     )
     
-    # Set Gazebo resource path
+
     set_gazebo_resource_path = SetEnvironmentVariable(
         'GAZEBO_RESOURCE_PATH',
         pkg_share + ':' + os.environ.get('GAZEBO_RESOURCE_PATH', '')
     )
     
-    # Launch configuration variables
+
     use_sim_time = LaunchConfiguration('use_sim_time')
     world = LaunchConfiguration('world')
     x_pose = LaunchConfiguration('x_pose')
     y_pose = LaunchConfiguration('y_pose')
     z_pose = LaunchConfiguration('z_pose')
     
-    # Declare launch arguments
+
     declare_use_sim_time_cmd = DeclareLaunchArgument(
         'use_sim_time',
         default_value='true',
@@ -60,7 +63,7 @@ def generate_launch_description():
     
     declare_x_position_cmd = DeclareLaunchArgument(
         'x_pose',
-        default_value='0.0',
+        default_value='+0.8',
         description='X position of the robot'
     )
     
@@ -76,74 +79,131 @@ def generate_launch_description():
         description='Z position of the robot'
     )
     
-    # Robot State Publisher
+
+    robot_description = Command([
+        'xacro ', urdf_file,
+        ' controller_config_file:=', controller_config
+    ])
+    
+
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         parameters=[{
-            'robot_description': Command(['xacro ', urdf_file]),
+            'robot_description': robot_description,
             'use_sim_time': use_sim_time
         }],
         output='screen'
     )
     
-    # Gazebo server with custom world
+
     gzserver_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_gazebo_ros, 'launch', 'gzserver.launch.py')
         ),
         launch_arguments={
             'world': world,
-            'verbose': 'true',
-            'physics': 'ode'
+            'verbose': 'false'
         }.items()
     )
     
-    # Gazebo client
+
     gzclient_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_gazebo_ros, 'launch', 'gzclient.launch.py')
         )
     )
     
-    # Spawn robot in Gazebo with delay
-    spawn_entity_node = TimerAction(
-        period=3.0,
-        actions=[
-            Node(
-                package='gazebo_ros',
-                executable='spawn_entity.py',
-                arguments=[
-                    '-entity', 'mec_rob',
-                    '-topic', 'robot_description',
-                    '-x', x_pose,
-                    '-y', y_pose,
-                    '-z', z_pose,
-                    '-timeout', '60.0'
-                ],
-                output='screen'
-            )
-        ]
+
+    spawn_entity_cmd = Node(
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        arguments=[
+            '-entity', 'mec_rob',
+            '-topic', 'robot_description',
+            '-x', x_pose,
+            '-y', y_pose,
+            '-z', z_pose,
+            '-timeout', '60.0'
+        ],
+        output='screen'
     )
     
-    # Create launch description
+
+    load_joint_broadcaster_cmd = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['joint_state_broadcaster', '--controller-manager', '/controller_manager'],
+        output='screen'
+    )
+    
+
+    load_mecanum_controller_cmd = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['mecanum_drive_controller', '--controller-manager', '/controller_manager'],
+        output='screen'
+    )
+
+    # lidar_static_tf = Node(
+    #     package='tf2_ros',
+    #     executable='static_transform_publisher',
+    #     name='lidar_static_tf',
+    #     arguments=['0', '0', '0.08', '0', '0', '0', 'base_link', 'lidar_link'],
+    #     parameters=[{'use_sim_time': True}],
+    #     output='screen'
+    # )
+    
+    # camera_static_tf = Node(
+    #     package='tf2_ros',
+    #     executable='static_transform_publisher',
+    #     name='camera_static_tf',
+    #     arguments=['0.15', '0', '0.05', '0', '0', '0', 'base_link', 'camera_link'],
+    #     parameters=[{'use_sim_time': True}],
+    #     output='screen'
+    # )
+    
+    # imu_static_tf = Node(
+    #     package='tf2_ros',
+    #     executable='static_transform_publisher',
+    #     name='imu_static_tf',
+    #     arguments=['-0.05', '0', '0.02', '0', '0', '0', 'base_link', 'imu_link'],
+    #     parameters=[{'use_sim_time': True}],
+    #     output='screen'
+    # )
+    
+
     ld = LaunchDescription()
     
     # Set environment variables
     ld.add_action(set_gazebo_model_path)
     ld.add_action(set_gazebo_resource_path)
     
-    # Add launch arguments
+ 
     ld.add_action(declare_use_sim_time_cmd)
     ld.add_action(declare_world_cmd)
     ld.add_action(declare_x_position_cmd)
     ld.add_action(declare_y_position_cmd)
     ld.add_action(declare_z_position_cmd)
-    
-    # Add nodes
+
     ld.add_action(robot_state_publisher_node)
     ld.add_action(gzserver_cmd)
     ld.add_action(gzclient_cmd)
-    ld.add_action(spawn_entity_node)
+    # ld.add_action(TimerAction(period=2.0, actions=[lidar_static_tf]))
+    # ld.add_action(TimerAction(period=2.0, actions=[camera_static_tf]))
+    # ld.add_action(TimerAction(period=2.0, actions=[imu_static_tf]))
+
+    ld.add_action(TimerAction(period=3.0, actions=[spawn_entity_cmd]))
+    
+
+    ld.add_action(TimerAction(period=5.0, actions=[load_joint_broadcaster_cmd]))
+    ld.add_action(
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=load_joint_broadcaster_cmd,
+                on_exit=[load_mecanum_controller_cmd]
+            )
+        )
+    )
     
     return ld

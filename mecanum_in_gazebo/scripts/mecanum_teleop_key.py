@@ -8,39 +8,43 @@ import termios
 import tty
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import Twist
+from std_msgs.msg import Float64MultiArray
 
 
 class MecanumTeleopKey(Node):
     def __init__(self):
         super().__init__('mecanum_teleop_key')
         
-        # Publisher
-        self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
+        # Publisher - publishing directly to controller commands
+        self.publisher = self.create_publisher(
+            Float64MultiArray, 
+            '/mecanum_drive_controller/commands', 
+            10
+        )
         
-        # Movement parameters
-        self.linear_speed = 0.5    # m/s
-        self.angular_speed = 1.0   # rad/s
-        self.speed_increment = 0.1
+        # Movement parameters (wheel velocities in rad/s)
+        self.wheel_speed = 20.0     # Base wheel speed
+        self.speed_increment = 2.0
         
-        # Key bindings
+        # Mecanum drive kinematics
+        # wheel order: [front_left, front_right, back_left, back_right]
         self.movement_bindings = {
-            'w': (1, 0, 0),    # Forward
-            's': (-1, 0, 0),   # Backward
-            'a': (0, 1, 0),    # Left (strafe)
-            'd': (0, -1, 0),   # Right (strafe)
-            'q': (0, 0, 1),    # Rotate left
-            'e': (0, 0, -1),   # Rotate right
+            'w': [1, 1, 1, 1],         # Forward
+            's': [-1, -1, -1, -1],     # Backward
+            'a': [-1, 1, 1, -1],       # Strafe left
+            'd': [1, -1, -1, 1],       # Strafe right
+            'q': [-1, 1, -1, 1],       # Rotate left
+            'e': [1, -1, 1, -1],       # Rotate right
             # Diagonal movements
-            'i': (1, 1, 0),    # Forward-left
-            'o': (1, -1, 0),   # Forward-right
-            'k': (-1, 1, 0),   # Backward-left
-            'l': (-1, -1, 0),  # Backward-right
+            'i': [0, 1, 1, 0],         # Forward-left
+            'o': [1, 0, 0, 1],         # Forward-right
+            'k': [-1, 0, 0, -1],       # Backward-left
+            'l': [0, -1, -1, 0],       # Backward-right
         }
         
         self.speed_bindings = {
-            'z': (1.1, 1.1),   # Increase speed
-            'c': (0.9, 0.9),   # Decrease speed
+            'z': 1.1,   # Increase speed by 10%
+            'c': 0.9,   # Decrease speed by 10%
         }
         
         self.get_logger().info('Mecanum Teleop Node Started')
@@ -65,13 +69,11 @@ Z/C : Increase/Decrease speed by 10%
 X   : Force stop
 SPACE : Stop
 
-Current speeds:
-  Linear: {:.2f} m/s
-  Angular: {:.2f} rad/s
+Current wheel speed: {:.2f} rad/s
 
 CTRL-C to quit
 ---------------------------
-        """.format(self.linear_speed, self.angular_speed)
+        """.format(self.wheel_speed)
         print(msg)
     
     def get_key(self):
@@ -81,22 +83,20 @@ CTRL-C to quit
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.settings)
         return key
     
-    def publish_twist(self, x, y, theta):
-        """Publish Twist message"""
-        twist = Twist()
-        twist.linear.x = x * self.linear_speed
-        twist.linear.y = y * self.linear_speed
-        twist.linear.z = 0.0
-        twist.angular.x = 0.0
-        twist.angular.y = 0.0
-        twist.angular.z = theta * self.angular_speed
+    def publish_wheel_commands(self, wheel_velocities):
+        """
+        Publish wheel velocity commands
+        wheel_velocities: [front_left, front_right, back_left, back_right]
+        """
+        msg = Float64MultiArray()
+        msg.data = [v * self.wheel_speed for v in wheel_velocities]
         
-        self.publisher.publish(twist)
+        self.publisher.publish(msg)
         
         # Log the command
         self.get_logger().info(
-            f'Publishing: linear(x={twist.linear.x:.2f}, y={twist.linear.y:.2f}), '
-            f'angular(z={twist.angular.z:.2f})'
+            f'Wheel velocities: FL={msg.data[0]:.2f}, FR={msg.data[1]:.2f}, '
+            f'BL={msg.data[2]:.2f}, BR={msg.data[3]:.2f} rad/s'
         )
     
     def run(self):
@@ -108,23 +108,21 @@ CTRL-C to quit
                 key = self.get_key()
                 
                 if key in self.movement_bindings:
-                    x, y, theta = self.movement_bindings[key]
-                    self.publish_twist(x, y, theta)
+                    velocities = self.movement_bindings[key]
+                    self.publish_wheel_commands(velocities)
                     
                 elif key in self.speed_bindings:
-                    linear_mult, angular_mult = self.speed_bindings[key]
-                    self.linear_speed *= linear_mult
-                    self.angular_speed *= angular_mult
+                    self.wheel_speed *= self.speed_bindings[key]
+                    self.wheel_speed = max(0.5, min(20.0, self.wheel_speed))  # Clamp speed
                     
                     self.get_logger().info(
-                        f'Speed updated: linear={self.linear_speed:.2f} m/s, '
-                        f'angular={self.angular_speed:.2f} rad/s'
+                        f'Speed updated: {self.wheel_speed:.2f} rad/s'
                     )
-                    self.publish_twist(0, 0, 0)  # Stop after speed change
+                    self.publish_wheel_commands([0, 0, 0, 0])  # Stop after speed change
                     
                 elif key in ['x', 'X', ' ']:
                     # Emergency stop
-                    self.publish_twist(0, 0, 0)
+                    self.publish_wheel_commands([0, 0, 0, 0])
                     self.get_logger().info('STOP')
                     
                 elif key == '\x03':  # Ctrl+C
@@ -135,7 +133,7 @@ CTRL-C to quit
             
         finally:
             # Send stop command before exit
-            self.publish_twist(0, 0, 0)
+            self.publish_wheel_commands([0, 0, 0, 0])
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.settings)
 
 

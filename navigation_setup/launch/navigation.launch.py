@@ -16,12 +16,12 @@ def generate_launch_description():
     navigation_setup_dir = get_package_share_directory('navigation_setup')
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
     
-
+    # File paths
     nav2_params_file = os.path.join(navigation_setup_dir, 'config', 'nav2_params.yaml')
     rviz_config_file = os.path.join(navigation_setup_dir, 'rviz', 'nav2.rviz')
     map_file = os.path.join(navigation_setup_dir, 'maps', 'map.yaml')
     
-
+    # Launch configuration variables
     namespace = LaunchConfiguration('namespace')
     use_sim_time = LaunchConfiguration('use_sim_time')
     autostart = LaunchConfiguration('autostart')
@@ -31,7 +31,7 @@ def generate_launch_description():
     use_respawn = LaunchConfiguration('use_respawn')
     log_level = LaunchConfiguration('log_level')
     
-
+    # Declare launch arguments
     declare_namespace_cmd = DeclareLaunchArgument(
         'namespace',
         default_value='',
@@ -80,7 +80,7 @@ def generate_launch_description():
         description='log level'
     )
     
-
+    # Nav2 bringup
     bringup_cmd_group = GroupAction([
         PushRosNamespace(
             condition=IfCondition(PythonExpression(["'", namespace, "' != ''"])),
@@ -112,10 +112,10 @@ def generate_launch_description():
         ),
     ])
     
-
+    # Create launch description
     ld = LaunchDescription()
     
-
+    # Add declarations
     ld.add_action(declare_namespace_cmd)
     ld.add_action(declare_use_sim_time_cmd)
     ld.add_action(declare_params_file_cmd)
@@ -125,7 +125,7 @@ def generate_launch_description():
     ld.add_action(declare_use_respawn_cmd)
     ld.add_action(declare_log_level_cmd)
     
-
+    # Add bringup group
     ld.add_action(bringup_cmd_group)
     
     return ld

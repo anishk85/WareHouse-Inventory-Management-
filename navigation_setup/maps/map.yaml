@@ -1,4 +1,4 @@
-image: navigation_setup.pgm
+image: map.pgm
 mode: trinary
 resolution: 0.05
 origin: [-2.52, -4.2, 0]

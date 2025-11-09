@@ -1,20 +1,9 @@
-
-/build/
-/install/
-/log/
-
+build/
+install/
+log/
 
 
-/src/nexus_4wd_mecanum_description/models/
 
 
-__pycache__/
-*.pyc
-*.pyo
 
 
-.DS_Store
-Thumbs.db
-*~
-.*.swp
-.vscode/

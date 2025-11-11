@@ -28,14 +28,26 @@ ament_target_dependencies(inventory_node
 
 target_link_libraries(inventory_node database_manager_lib)
 
+# Install executables and libraries
 install(TARGETS database_manager_lib inventory_node
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
+# Install headers
 install(DIRECTORY include/
   DESTINATION include/${PROJECT_NAME}
+)
+
+# Install launch files
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME}/launch
+)
+
+# Install config files (if any)
+install(DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config
 )
 
 ament_export_include_directories(include)

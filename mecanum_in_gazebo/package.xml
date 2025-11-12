@@ -4,13 +4,12 @@
   <version>0.1.0</version>
   <description>The mecanum_in_gazebo package converted for ROS 2 (ament).</description>
 
-  <maintainer email="sudhanshupawar@rigebtellabs.com">Sudhanshu Pawar</maintainer>
+  <maintainer email="you@example.com">you</maintainer>
 
   <license>GPL-2.0</license>
 
-  <url type="website">https://www.linkedin.com/in/sudhanshu-pawar-21bb781b9/</url>
 
-  <author email="sudhanshupawar@rigebtellabs.com">Sudhanshu Pawar</author>
+  <author email="you@example.com">you</author>
 
 
   <buildtool_depend>ament_cmake</buildtool_depend>

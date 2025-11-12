@@ -47,6 +47,7 @@ def generate_launch_description():
     x_pose = LaunchConfiguration('x_pose')
     y_pose = LaunchConfiguration('y_pose')
     z_pose = LaunchConfiguration('z_pose')
+    rot_pose = LaunchConfiguration('rot_pose')
     
 
     declare_use_sim_time_cmd = DeclareLaunchArgument(
@@ -77,6 +78,11 @@ def generate_launch_description():
         'z_pose',
         default_value='0.055',
         description='Z position of the robot'
+    )
+    declare_rot_cmd=DeclareLaunchArgument(
+        'rot_pose',
+        default_value='3.14',
+        description='Rotation of the robot'
     )
     
 
@@ -124,6 +130,7 @@ def generate_launch_description():
             '-x', x_pose,
             '-y', y_pose,
             '-z', z_pose,
+            '-Y', rot_pose,
             '-timeout', '60.0'
         ],
         output='screen'
@@ -185,6 +192,7 @@ def generate_launch_description():
     ld.add_action(declare_x_position_cmd)
     ld.add_action(declare_y_position_cmd)
     ld.add_action(declare_z_position_cmd)
+    ld.add_action(declare_rot_cmd)
 
     ld.add_action(robot_state_publisher_node)
     ld.add_action(gzserver_cmd)

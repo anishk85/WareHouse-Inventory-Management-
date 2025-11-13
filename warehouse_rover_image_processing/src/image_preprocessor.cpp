@@ -31,7 +31,7 @@ PreprocessingConfig ImagePreprocessor::getRecommendedConfig()
       config.target_width = 1920;
       config.target_height = 1080;
       config.enable_ipt = true;
-      config.enable_adaptive = true;
+      config.enable_adaptive = false;  // DISABLED - use CLAHE instead
       config.blur_kernel_size = 3;
       config.adaptive_block_size = 11;
       config.interpolation = cv::INTER_LINEAR;
@@ -41,7 +41,7 @@ PreprocessingConfig ImagePreprocessor::getRecommendedConfig()
       config.target_width = 1280;
       config.target_height = 720;
       config.enable_ipt = true;
-      config.enable_adaptive = true;
+      config.enable_adaptive = false;  // DISABLED
       config.blur_kernel_size = 3;
       config.adaptive_block_size = 11;
       config.interpolation = cv::INTER_LINEAR;
@@ -61,7 +61,7 @@ PreprocessingConfig ImagePreprocessor::getRecommendedConfig()
       config.target_width = 1280;
       config.target_height = 720;
       config.enable_ipt = true;
-      config.enable_adaptive = true;
+      config.enable_adaptive = false;  // DISABLED
       config.blur_kernel_size = 3;
       config.adaptive_block_size = 11;
       config.interpolation = cv::INTER_LINEAR;
@@ -138,18 +138,17 @@ cv::Mat ImagePreprocessor::processCPU(const cv::Mat & input, PreprocessingConfig
     cv::cvtColor(result, result, cv::COLOR_BGR2GRAY);
   }
   
-  // Gaussian blur
+  // OPTIONAL: Very light blur to reduce noise
   if (config.blur_kernel_size > 1) {
     cv::GaussianBlur(result, result, 
                      cv::Size(config.blur_kernel_size, config.blur_kernel_size), 0);
   }
   
-  // Adaptive thresholding
+  // USE CLAHE instead of adaptive threshold for better contrast
+  // CLAHE preserves grayscale information (better for ZBar)
   if (config.enable_adaptive) {
-    cv::adaptiveThreshold(result, result, 255,
-                          cv::ADAPTIVE_THRESH_GAUSSIAN_C,
-                          cv::THRESH_BINARY,
-                          config.adaptive_block_size, 2);
+    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(2.0, cv::Size(8, 8));
+    clahe->apply(result, result);
   }
   
   return result;
@@ -189,17 +188,13 @@ cv::Mat ImagePreprocessor::processCUDA(const cv::Mat & input, PreprocessingConfi
   
   // Download result
   cv::Mat result;
+  gpu_blurred_.download(result, stream1_);
+  stream1_.waitForCompletion();
+  
+  // CLAHE on CPU (faster than adaptive threshold, better results)
   if (config.enable_adaptive) {
-    gpu_blurred_.download(result, stream1_);
-    stream1_.waitForCompletion();
-    
-    cv::adaptiveThreshold(result, result, 255,
-                          cv::ADAPTIVE_THRESH_GAUSSIAN_C,
-                          cv::THRESH_BINARY,
-                          config.adaptive_block_size, 2);
-  } else {
-    gpu_blurred_.download(result, stream1_);
-    stream1_.waitForCompletion();
+    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(2.0, cv::Size(8, 8));
+    clahe->apply(result, result);
   }
   
   return result;

@@ -8,8 +8,6 @@
 #include "warehouse_rover_msgs/msg/qr_detection.hpp"
 #include "warehouse_rover_image_processing/hardware_detector.hpp"
 #include "warehouse_rover_image_processing/image_preprocessor.hpp"
-
-// Include QR Parser from detection package
 #include "warehouse_rover_qr_detection/qr_parser.hpp"
 
 namespace warehouse_rover_image_processing
@@ -19,7 +17,7 @@ class QRDetectorEnhancedNode : public rclcpp::Node
 {
 public:
   explicit QRDetectorEnhancedNode(const rclcpp::NodeOptions & options)
-  : Node("qr_detector_enhanced_node", options),
+  : Node("qr_detector_enhanced", options),
     frame_count_(0),
     detection_count_(0),
     total_processing_time_ms_(0)
@@ -36,20 +34,21 @@ public:
     // Parameters
     this->declare_parameter<bool>("enable_visualization", true);
     this->declare_parameter<bool>("enable_ipt", true);
-    this->declare_parameter<bool>("enable_adaptive", true);
+    this->declare_parameter<bool>("enable_multipass", true);
     this->declare_parameter<int>("target_width", preprocessing_config_.target_width);
     this->declare_parameter<int>("target_height", preprocessing_config_.target_height);
     
     // Override config with parameters
     preprocessing_config_.enable_ipt = this->get_parameter("enable_ipt").as_bool();
-    preprocessing_config_.enable_adaptive = this->get_parameter("enable_adaptive").as_bool();
     preprocessing_config_.target_width = this->get_parameter("target_width").as_int();
     preprocessing_config_.target_height = this->get_parameter("target_height").as_int();
     bool enable_viz = this->get_parameter("enable_visualization").as_bool();
+    enable_multipass_ = this->get_parameter("enable_multipass").as_bool();
     
-    // Initialize ZBar
+    // Initialize ZBar - ONLY QR CODES
     scanner_ = std::make_unique<zbar::ImageScanner>();
-    scanner_->set_config(zbar::ZBAR_QRCODE, zbar::ZBAR_CFG_ENABLE, 1);
+    scanner_->set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 0);  // Disable all
+    scanner_->set_config(zbar::ZBAR_QRCODE, zbar::ZBAR_CFG_ENABLE, 1);  // Enable only QR
     
     // Subscribers
     image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
@@ -77,9 +76,9 @@ public:
     RCLCPP_INFO(this->get_logger(), "Target Resolution: %dx%d",
                 preprocessing_config_.target_width,
                 preprocessing_config_.target_height);
-    RCLCPP_INFO(this->get_logger(), "IPT: %s, Adaptive: %s",
+    RCLCPP_INFO(this->get_logger(), "IPT: %s, Multi-pass: %s",
                 preprocessing_config_.enable_ipt ? "ON" : "OFF",
-                preprocessing_config_.enable_adaptive ? "ON" : "OFF");
+                enable_multipass_ ? "ON" : "OFF");
   }
   
   ~QRDetectorEnhancedNode()
@@ -110,36 +109,15 @@ private:
       return;
     }
     
-    // Stage 1: GPU-accelerated preprocessing
-    auto preprocess_start = std::chrono::high_resolution_clock::now();
-    cv::Mat preprocessed = preprocessor_->process(cv_ptr->image, preprocessing_config_);
-    auto preprocess_end = std::chrono::high_resolution_clock::now();
-    auto preprocess_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-      preprocess_end - preprocess_start).count();
+    warehouse_rover_msgs::msg::QRDetectionArray detections;
     
-    // Stage 2: ZBar detection on preprocessed image
-    auto detection_start = std::chrono::high_resolution_clock::now();
-    auto detections = detectQRCodes(preprocessed, msg->header);
-    auto detection_end = std::chrono::high_resolution_clock::now();
-    auto detection_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-      detection_end - detection_start).count();
-    
-    // Stage 3: If failed and IPT enabled, try with perspective correction
-    if (detections.detection_count == 0 && preprocessing_config_.enable_ipt) {
-      std::vector<cv::Point2f> corners;
-      if (preprocessor_->detectCorners(cv_ptr->image, corners)) {
-        auto ipt_start = std::chrono::high_resolution_clock::now();
-        cv::Mat warped = preprocessor_->applyIPT(cv_ptr->image, corners);
-        cv::Mat warped_preprocessed = preprocessor_->process(warped, preprocessing_config_);
-        detections = detectQRCodes(warped_preprocessed, msg->header);
-        auto ipt_end = std::chrono::high_resolution_clock::now();
-        auto ipt_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-          ipt_end - ipt_start).count();
-        
-        if (detections.detection_count > 0) {
-          RCLCPP_INFO(this->get_logger(), "  IPT correction helped! (+%ld ms)", ipt_time);
-        }
-      }
+    if (enable_multipass_) {
+      // Multi-pass strategy for maximum robustness
+      detections = detectMultiPass(cv_ptr->image, msg->header);
+    } else {
+      // Single pass with preprocessing
+      cv::Mat preprocessed = preprocessor_->process(cv_ptr->image, preprocessing_config_);
+      detections = detectQRCodes(preprocessed, msg->header);
     }
     
     // Visualize if enabled
@@ -167,11 +145,9 @@ private:
       
       RCLCPP_INFO(
         this->get_logger(),
-        "Frame %d: %d QR(s) | Preprocess: %ldms | Detect: %ldms | Total: %ldms",
+        "Frame %d: %d QR(s) | Total: %ldms",
         frame_count_,
         detections.detection_count,
-        preprocess_time,
-        detection_time,
         total_time
       );
       
@@ -195,6 +171,47 @@ private:
         }
       }
     }
+  }
+  
+  warehouse_rover_msgs::msg::QRDetectionArray detectMultiPass(
+    const cv::Mat & image,
+    const std_msgs::msg::Header & header)
+  {
+    // Try multiple preprocessing strategies, return first success
+    
+    // Pass 1: Just grayscale + light blur (fastest, often works)
+    cv::Mat gray;
+    cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+    cv::GaussianBlur(gray, gray, cv::Size(3, 3), 0);
+    auto result = detectQRCodes(gray, header);
+    if (result.detection_count > 0) return result;
+    
+    // Pass 2: CLAHE (better contrast)
+    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(2.0, cv::Size(8, 8));
+    cv::Mat clahe_img;
+    clahe->apply(gray, clahe_img);
+    result = detectQRCodes(clahe_img, header);
+    if (result.detection_count > 0) return result;
+    
+    // Pass 3: Histogram equalization
+    cv::Mat equalized;
+    cv::equalizeHist(gray, equalized);
+    result = detectQRCodes(equalized, header);
+    if (result.detection_count > 0) return result;
+    
+    // Pass 4: IPT if corners detected
+    if (preprocessing_config_.enable_ipt) {
+      std::vector<cv::Point2f> corners;
+      if (preprocessor_->detectCorners(image, corners)) {
+        cv::Mat warped = preprocessor_->applyIPT(image, corners);
+        cv::cvtColor(warped, warped, cv::COLOR_BGR2GRAY);
+        result = detectQRCodes(warped, header);
+        if (result.detection_count > 0) return result;
+      }
+    }
+    
+    // No detection
+    return result;
   }
   
   warehouse_rover_msgs::msg::QRDetectionArray detectQRCodes(
@@ -285,6 +302,7 @@ private:
   HardwareCapabilities hw_caps_;
   std::unique_ptr<ImagePreprocessor> preprocessor_;
   PreprocessingConfig preprocessing_config_;
+  bool enable_multipass_;
   
   // ZBar
   std::unique_ptr<zbar::ImageScanner> scanner_;

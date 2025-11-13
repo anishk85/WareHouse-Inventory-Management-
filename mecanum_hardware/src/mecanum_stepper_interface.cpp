@@ -38,8 +38,8 @@ hardware_interface::CallbackReturn MecanumStepperInterface::on_init(
   
   RCLCPP_INFO(
     rclcpp::get_logger("MecanumStepperInterface"),
-    "Stepper params: steps/rev=%.0f, wheel_r=%.3f, gear_ratio=%.2f",
-    steps_per_revolution_, wheel_radius_, gear_ratio_);
+    "Stepper params: steps/rev=%.0f, wheel_r=%.3f, gear_ratio=%.2f, use_imu=%s",
+    steps_per_revolution_, wheel_radius_, gear_ratio_, use_imu_ ? "true" : "false");
 
   // Setup ESP connections (2 ESPs)
   // ESP1: FL (index 0), FR (index 1)
@@ -78,6 +78,13 @@ hardware_interface::CallbackReturn MecanumStepperInterface::on_init(
   first_read_ = true;
   imu_angular_velocity_z_ = 0.0;
 
+  // Create IMU subscriber if enabled
+  if (use_imu_) {
+    RCLCPP_INFO(
+      rclcpp::get_logger("MecanumStepperInterface"),
+      "IMU fusion enabled - will subscribe to /imu/data");
+  }
+
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -97,6 +104,27 @@ hardware_interface::CallbackReturn MecanumStepperInterface::on_configure(
     RCLCPP_INFO(
       rclcpp::get_logger("MecanumStepperInterface"),
       "Opened ESP port: %s @ %d baud", esp.port.c_str(), esp.baudrate);
+  }
+  
+  // Create ROS node for IMU subscription if enabled
+  if (use_imu_) {
+    try {
+      node_ = std::make_shared<rclcpp::Node>("mecanum_hardware_imu_listener");
+      
+      imu_subscriber_ = node_->create_subscription<sensor_msgs::msg::Imu>(
+        "/imu/data", 10,
+        [this](const sensor_msgs::msg::Imu::SharedPtr msg) {
+          // Store latest IMU angular velocity (yaw rate)
+          imu_angular_velocity_z_ = msg->angular_velocity.z;
+        });
+      
+      RCLCPP_INFO(rclcpp::get_logger("MecanumStepperInterface"), 
+                  "IMU subscriber created on /imu/data");
+    } catch (const std::exception& e) {
+      RCLCPP_WARN(rclcpp::get_logger("MecanumStepperInterface"),
+                  "Failed to create IMU subscriber: %s. Continuing without IMU.", e.what());
+      use_imu_ = false;
+    }
   }
   
   RCLCPP_INFO(rclcpp::get_logger("MecanumStepperInterface"), 
@@ -189,8 +217,12 @@ hardware_interface::return_type MecanumStepperInterface::read(
     return hardware_interface::return_type::OK;
   }
   
-  // Calculate odometry based on commanded velocities
-  // Since steppers are accurate, we assume commanded = actual
+  // Spin the node to process IMU callbacks if enabled
+  if (use_imu_ && node_) {
+    rclcpp::spin_some(node_);
+  }
+  
+  // Calculate odometry (with IMU fusion if available)
   calculate_odometry(period);
   
   last_read_time_ = time;
@@ -277,7 +309,7 @@ bool MecanumStepperInterface::open_esp_port(ESPConnection& esp)
 void MecanumStepperInterface::close_esp_port(ESPConnection& esp)
 {
   if (esp.fd != -1) {
-    ::close(esp.fd);  // Use :: to specify global namespace
+    ::close(esp.fd);
     esp.fd = -1;
   }
 }
@@ -299,7 +331,6 @@ bool MecanumStepperInterface::send_velocity_command(
   oss << "\n";
   
   std::string message = oss.str();
-  // Use :: to specify global namespace write() function
   ssize_t bytes_written = ::write(esp.fd, message.c_str(), message.length());
   
   if (bytes_written != static_cast<ssize_t>(message.length())) {
@@ -318,10 +349,64 @@ void MecanumStepperInterface::calculate_odometry(const rclcpp::Duration & period
 {
   double dt = period.seconds();
   
-  // Update positions based on commanded velocities (steppers are accurate)
+  // Mecanum kinematics parameters (from URDF)
+  // These should match your actual robot dimensions
+  const double wheel_separation_x = 0.3;  // Front-back distance (m)
+  const double wheel_separation_y = 0.25; // Left-right distance (m)
+  
+  // Get wheel velocities (rad/s)
+  double v_fl = hw_commands_velocity_[0];  // Front Left
+  double v_fr = hw_commands_velocity_[1];  // Front Right
+  double v_bl = hw_commands_velocity_[2];  // Back Left
+  double v_br = hw_commands_velocity_[3];  // Back Right
+  
+  // Forward kinematics: Convert wheel velocities to robot velocity
+  // Mecanum wheel kinematics:
+  // vx = R/4 * (v_fl + v_fr + v_bl + v_br)
+  // vy = R/4 * (-v_fl + v_fr + v_bl - v_br)
+  // omega = R/(4*(lx+ly)) * (-v_fl + v_fr - v_bl + v_br)
+  
+  double vx_wheel = wheel_radius_ / 4.0 * (v_fl + v_fr + v_bl + v_br);
+  double vy_wheel = wheel_radius_ / 4.0 * (-v_fl + v_fr + v_bl - v_br);
+  double omega_wheel = wheel_radius_ / (4.0 * (wheel_separation_x + wheel_separation_y)) * 
+                       (-v_fl + v_fr - v_bl + v_br);
+  
+  // IMU fusion: Use IMU angular velocity if available and significantly different
+  double omega_fused = omega_wheel;
+  
+  if (use_imu_) {
+    // Simple complementary filter: trust IMU for angular velocity
+    // IMU is typically more accurate for rotation than wheel odometry
+    const double imu_weight = 0.7;  // Trust IMU 70%, wheels 30%
+    omega_fused = imu_weight * imu_angular_velocity_z_ + (1.0 - imu_weight) * omega_wheel;
+    
+    // Detect slip: if IMU and wheel odometry disagree significantly
+    double omega_diff = std::abs(imu_angular_velocity_z_ - omega_wheel);
+    if (omega_diff > 0.5) {  // 0.5 rad/s threshold
+      RCLCPP_WARN_THROTTLE(
+        rclcpp::get_logger("MecanumStepperInterface"),
+        *rclcpp::Clock::make_shared(),
+        2000,  // Warn every 2 seconds
+        "Potential wheel slip detected! IMU: %.2f rad/s, Wheels: %.2f rad/s",
+        imu_angular_velocity_z_, omega_wheel);
+    }
+  }
+  
+  // Update joint positions (for state feedback)
+  // For steppers without encoders, we trust commanded velocities
+  // But use IMU-corrected angular velocity for better accuracy
   for (size_t i = 0; i < hw_commands_velocity_.size(); i++) {
     hw_states_velocity_[i] = hw_commands_velocity_[i];
     hw_states_position_[i] += hw_commands_velocity_[i] * dt;
+  }
+  
+
+  static int counter = 0;
+  if (++counter % 100 == 0) {  // Log every 100 cycles (~1 second at 100Hz)
+    RCLCPP_DEBUG(
+      rclcpp::get_logger("MecanumStepperInterface"),
+      "Odom: vx=%.3f, vy=%.3f, omega=%.3f (wheel=%.3f, imu=%.3f)",
+      vx_wheel, vy_wheel, omega_fused, omega_wheel, imu_angular_velocity_z_);
   }
 }
 

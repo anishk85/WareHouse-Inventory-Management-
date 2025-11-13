@@ -46,42 +46,46 @@ public:
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
-  // ESP communication (2 ESPs, each controlling 2 motors)
+  // ESP32 connection structure
   struct ESPConnection {
     std::string port;
     int baudrate;
-    int fd;
-    std::vector<int> motor_indices;  // Which motors (0-3) this ESP controls
+    int fd = -1;  // File descriptor
+    std::vector<int> motor_indices;  // Which motors this ESP controls
   };
-  
-  std::vector<ESPConnection> esp_connections_;
-  
-  // Wheel parameters
-  std::vector<std::string> wheel_names_;
-  std::vector<double> hw_commands_velocity_;   // Commanded velocities (rad/s)
-  std::vector<double> hw_states_position_;     // Calculated positions (rad)
-  std::vector<double> hw_states_velocity_;     // Calculated velocities (rad/s)
-  
-  // Stepper motor parameters
-  double steps_per_revolution_;  // Steps per revolution for stepper
-  double wheel_radius_;          // Wheel radius in meters
-  double gear_ratio_;            // Gear ratio (if any)
-  
-  // Odometry calculation
-  rclcpp::Time last_read_time_;
-  bool first_read_;
-  
-  // IMU data (optional, for sensor fusion)
-  bool use_imu_;
-  double imu_angular_velocity_z_;
-  
-  // Helper functions
+
+  // ESP serial communication
   bool open_esp_port(ESPConnection& esp);
   void close_esp_port(ESPConnection& esp);
-  bool send_velocity_command(ESPConnection& esp, 
-                             const std::vector<double>& velocities);
+  bool send_velocity_command(ESPConnection& esp, const std::vector<double>& velocities);
+
+  // Odometry calculation
   void calculate_odometry(const rclcpp::Duration & period);
   double velocity_to_steps_per_sec(double rad_per_sec);
+
+  // Hardware parameters
+  double steps_per_revolution_;
+  double wheel_radius_;
+  double gear_ratio_;
+  bool use_imu_;
+
+  // ESP connections (2 ESPs)
+  std::vector<ESPConnection> esp_connections_;
+
+  // Wheel state
+  std::vector<std::string> wheel_names_;
+  std::vector<double> hw_commands_velocity_;
+  std::vector<double> hw_states_position_;
+  std::vector<double> hw_states_velocity_;
+
+  // Timing
+  rclcpp::Time last_read_time_;
+  bool first_read_;
+
+  // IMU data
+  double imu_angular_velocity_z_;
+  rclcpp::Node::SharedPtr node_;
+  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscriber_;
 };
 
 }  // namespace mecanum_hardware

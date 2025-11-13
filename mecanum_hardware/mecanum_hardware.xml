@@ -1,6 +1,6 @@
 <library path="mecanum_hardware">
-  <class name="mecanum_hardware/MecanumHardwareInterface" 
-         type="mecanum_hardware::MecanumHardwareInterface" 
+  <class name="mecanum_hardware/MecanumStepperInterface" 
+         type="mecanum_hardware::MecanumStepperInterface" 
          base_class_type="hardware_interface::SystemInterface">
     <description>
       Mecanum wheel hardware interface supporting serial and network communication

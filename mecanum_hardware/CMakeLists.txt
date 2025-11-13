@@ -48,6 +48,13 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+# Ensure script files are installed with executable permissions
+install(PROGRAMS
+  scripts/deploy_to_rpi.sh
+  scripts/test_esp_connection.py
+  scripts/test_individual_motor.py
+  DESTINATION share/${PROJECT_NAME}/scripts
+)
 install(TARGETS mecanum_hardware
   EXPORT export_mecanum_hardware
   ARCHIVE DESTINATION lib

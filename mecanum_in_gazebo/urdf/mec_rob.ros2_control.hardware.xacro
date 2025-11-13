@@ -4,8 +4,6 @@
   <xacro:arg name="use_sim" default="true"/>
   <xacro:arg name="esp1_port" default="/dev/ttyUSB0"/>
   <xacro:arg name="esp2_port" default="/dev/ttyUSB1"/>
-  
-<!-- todo update this -->
 
   <!-- Simulation Hardware Interface -->
   <xacro:if value="$(arg use_sim)">

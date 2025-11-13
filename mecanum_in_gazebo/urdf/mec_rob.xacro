@@ -1,6 +1,20 @@
 <?xml version="1.0" ?>
 <robot name="mec_rob" xmlns:xacro="http://www.ros.org/wiki/xacro">
-<xacro:include filename="$(find mecanum_in_gazebo)/urdf/mec_rob.ros2_control.xacro"/>
+<!-- <xacro:include filename="$(find mecanum_in_gazebo)/urdf/mec_rob.ros2_control.xacro"/> -->
+
+<xacro:arg name="use_sim" default="true"/>
+
+
+<xacro:if value="$(arg use_sim)">
+
+  <xacro:include filename="$(find mecanum_in_gazebo)/urdf/mec_rob.ros2_control.xacro"/>
+</xacro:if>
+
+<xacro:unless value="$(arg use_sim)">
+ 
+  <xacro:include filename="$(find mecanum_in_gazebo)/urdf/mec_rob.ros2_control.hardware.xacro"/>
+</xacro:unless>
+
 <xacro:include filename="lidar.xacro" />
 <xacro:include filename="lidar.gazebo" />
 <xacro:include filename="depth_camera.xacro" />

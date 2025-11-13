@@ -1,0 +1,23 @@
+/**:
+  ros__parameters:
+    # IMU Filter Configuration (imu_filter_madgwick or imu_complementary_filter)
+    use_mag: false  # Set true if magnetometer available
+    publish_tf: false  # EKF will handle TF
+    world_frame: enu  # East-North-Up
+    
+    # Frame IDs
+    fixed_frame: base_link
+    imu_frame: imu_link
+    
+    # Orientation filter parameters
+    gain: 0.1  # Madgwick filter gain
+    zeta: 0.0  # Gyroscope drift bias
+    
+    # Magnetic declination (degrees) - adjust for your location
+    mag_bias_x: 0.0
+    mag_bias_y: 0.0
+    mag_bias_z: 0.0
+    
+    # Topic remapping
+    imu_topic_in: /imu/data_raw
+    imu_topic_out: /imu/data

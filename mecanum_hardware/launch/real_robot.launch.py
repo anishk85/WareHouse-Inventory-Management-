@@ -1,5 +1,5 @@
 """
-Launch file for real hardware with sensor fusion
+Complete launch file for real hardware with all sensors
 """
 import os
 from ament_index_python.packages import get_package_share_directory
@@ -32,18 +32,50 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
+            "lidar_port",
+            default_value="/dev/ttyUSB2",
+            description="LiDAR serial port",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
             "use_sensor_fusion",
             default_value="true",
             description="Use robot_localization for sensor fusion",
         )
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "use_lidar",
+            default_value="true",
+            description="Launch LiDAR node",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "use_camera",
+            default_value="true",
+            description="Launch depth camera node",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "use_imu",
+            default_value="true",
+            description="Launch IMU filter node",
+        )
+    )
 
-    # Initialize Arguments
+
     esp1_port = LaunchConfiguration("esp1_port")
     esp2_port = LaunchConfiguration("esp2_port")
+    lidar_port = LaunchConfiguration("lidar_port")
     use_sensor_fusion = LaunchConfiguration("use_sensor_fusion")
+    use_lidar = LaunchConfiguration("use_lidar")
+    use_camera = LaunchConfiguration("use_camera")
+    use_imu = LaunchConfiguration("use_imu")
 
-    # Get URDF via xacro
+    # use_sim=false menas hardware ros2 control
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
@@ -52,7 +84,7 @@ def generate_launch_description():
                 [FindPackageShare("mecanum_in_gazebo"), "urdf", "mec_rob.xacro"]
             ),
             " ",
-            "use_sim:=false",
+            "use_sim:=false", 
             " ",
             "esp1_port:=",
             esp1_port,
@@ -74,7 +106,7 @@ def generate_launch_description():
     # Controller manager configuration
     robot_controllers = PathJoinSubstitution(
         [
-            FindPackageShare("mecanum_in_gazebo"),
+            FindPackageShare("mecanum_hardware"),
             "config",
             "controller.yaml",
         ]
@@ -134,12 +166,58 @@ def generate_launch_description():
         condition=IfCondition(use_sensor_fusion),
     )
 
+    # LiDAR node (RPLidar)
+    lidar_config = PathJoinSubstitution(
+        [FindPackageShare("mecanum_hardware"), "config", "lidar.yaml"]
+    )
+    
+    lidar_node = Node(
+        package="rplidar_ros",
+        executable="rplidar_composition",
+        name="rplidar_node",
+        parameters=[lidar_config, {"serial_port": lidar_port}],
+        output="screen",
+        condition=IfCondition(use_lidar),
+    )
+
+    # Depth Camera node (RealSense)
+    camera_config = PathJoinSubstitution(
+        [FindPackageShare("mecanum_hardware"), "config", "camera.yaml"]
+    )
+    
+    camera_node = Node(
+        package="realsense2_camera",
+        executable="realsense2_camera_node",
+        name="camera",
+        namespace="camera",
+        parameters=[camera_config],
+        output="screen",
+        condition=IfCondition(use_camera),
+    )
+
+    # IMU Filter node
+    imu_config = PathJoinSubstitution(
+        [FindPackageShare("mecanum_hardware"), "config", "imu.yaml"]
+    )
+    
+    imu_filter_node = Node(
+        package="imu_filter_madgwick",
+        executable="imu_filter_madgwick_node",
+        name="imu_filter",
+        parameters=[imu_config],
+        output="screen",
+        condition=IfCondition(use_imu),
+    )
+
     nodes = [
         control_node,
         robot_state_publisher_node,
         delay_joint_state_broadcaster_after_control_node,
         delay_mecanum_controller_after_joint_state_broadcaster,
         robot_localization_node,
+        lidar_node,
+        camera_node,
+        imu_filter_node,
     ]
 
     return LaunchDescription(declared_arguments + nodes)

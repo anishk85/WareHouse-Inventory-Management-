@@ -99,7 +99,7 @@ Inter-IIT-Robotics-Midprep/
 ros2 launch mecanum_in_gazebo final_gazebo.launch.py
 ```
 
-This starts Gazebo, spawns the robot with sensors, and starts controllers (if configured).
+This starts Gazebo, spawns the robot with sensors, and starts controllers.
 
 **2) Teleoperation (keyboard):**
 
@@ -116,8 +116,6 @@ ros2 run mecanum_in_gazebo final_teleop.py
 * `x` — stop
 * `+` / `-` — change speed
 
-
-This will run SLAM Toolbox in online mode and produce a map that you can save with the `map_server`.
 
 ### Cartographer (experimental)
 

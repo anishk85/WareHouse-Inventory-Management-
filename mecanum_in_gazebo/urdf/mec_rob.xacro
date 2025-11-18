@@ -10,6 +10,10 @@
 <xacro:include filename="mec_rob.gazebo" />
 <xacro:include filename="imu.gazebo" />
 <xacro:include filename="imu.urdf.xacro" />
+<xacro:include filename="lift.xacro" />
+<xacro:include filename="lift_camera.xacro" />
+<xacro:include filename="lift_camera.gazebo" />
+
 
 
 <link name="base_link">
@@ -32,6 +36,16 @@
     </geometry>
   </collision>
 </link>
+<!-- Lift Assembly -->
+<xacro:lift parent="base_link" name="lift" origin_xyz="0 0 0.05" origin_rpy="0 0 0"/>
+
+<!-- Camera on Lift -->
+<xacro:lift_camera_sensor parent="lift_platform_link" name="lift_camera">
+  <origin xyz="0 0 0.10" rpy="0 0 0"/>
+</xacro:lift_camera_sensor>
+
+<!-- Gazebo Camera Plugin -->
+<xacro:lift_camera_gazebo name="lift_camera"/>
 
 <link name="wheel_frame_FL_1">
   <inertial>
@@ -1171,5 +1185,16 @@
 
 <xacro:imu_gazebo name="imu"/>
 
+<xacro:lift 
+    parent="base_link"
+    name="lift"
+    origin_xyz="0 0 0.05"
+    origin_rpy="0 0 0"/>
+
+<xacro:lift_camera_sensor parent="lift_platform_link" name="lift_camera">
+  <origin xyz="0 0 0.10" rpy="0 0 0"/>
+</xacro:lift_camera_sensor>
+
+<xacro:lift_camera_gazebo name="lift_camera"/>
 
 </robot>

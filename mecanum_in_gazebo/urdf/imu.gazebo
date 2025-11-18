@@ -2,26 +2,29 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <xacro:macro name="imu_gazebo" params="name:=imu">
-    
-    <!-- IMU Sensor Gazebo Plugin -->
+
     <gazebo reference="${name}_link">
-      <sensor name="${name}_sensor" type="imu">
+
+      <sensor name="imu_sensor" type="imu">
         <always_on>true</always_on>
-        <update_rate>100.0</update_rate>
-        <plugin name="${name}_plugin" filename="libgazebo_ros_imu_sensor.so">
-          <ros>
-            <namespace>/</namespace>
-            <remapping>~/out:=${name}/data</remapping>
-            <remapping>/clock:=/clock</remapping>  
-          </ros>
-          <frame_name>${name}_link</frame_name>
-          <initial_orientation_as_reference>false</initial_orientation_as_reference>
-          
-          <!-- Noise parameters -->
-          <angular_velocity_stdev>0.0002</angular_velocity_stdev>
-          <linear_acceleration_stdev>0.0003</linear_acceleration_stdev>
-          <orientation_stdev>0.0</orientation_stdev>
+        <update_rate>100</update_rate>
+        <visualize>true</visualize>
+        <topic>__default_topic__</topic>
+        <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
+          <topicName>imu_plugin/out</topicName>
+          <bodyName>imu_link</bodyName>
+          <updateRateHZ>100.0</updateRateHZ>
+          <xyzOffset>0 0 0</xyzOffset>
+          <rpyOffset>0 0 0</rpyOffset>
+          <frameName>base_link</frameName>
+          <initialOrientationAsReference>false</initialOrientationAsReference>
+
+          <!-- Noise settings -->
+          <gaussianNoise>1</gaussianNoise>          <!-- Applies to linear acceleration by default -->
+          <angularVelGaussianNoise>0.1</angularVelGaussianNoise>          <!-- Angular velocity noise -->
+          <orientationGaussianNoise>1</orientationGaussianNoise>          <!-- Orientation noise -->
         </plugin>
+        <pose>0 0 0 0 0 0</pose>
       </sensor>
       <material>Gazebo/Blue</material>
     </gazebo>

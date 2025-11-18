@@ -4,6 +4,8 @@ Convert cmd_vel (Twist) to mecanum wheel velocities
 Subscribes: /cmd_vel (geometry_msgs/Twist)
 Publishes: /mecanum_drive_controller/commands (std_msgs/Float64MultiArray)
 """
+
+
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
@@ -11,7 +13,11 @@ from std_msgs.msg import Float64MultiArray
 import math
 
 
+
+
 class CmdVelToMecanum(Node):
+    
+    
     def __init__(self):
         super().__init__('cmd_vel_to_mecanum')
         
@@ -41,6 +47,8 @@ class CmdVelToMecanum(Node):
         
         self.get_logger().info('cmd_vel to mecanum converter started')
         self.get_logger().info(f'Wheel params: sep_x={self.wheel_sep_x}, sep_y={self.wheel_sep_y}, radius={self.wheel_radius}')
+        
+
     
     def cmd_vel_callback(self, msg):
         """
@@ -80,12 +88,15 @@ class CmdVelToMecanum(Node):
             )
 
 
+
+
 def main(args=None):
     rclpy.init(args=args)
     node = CmdVelToMecanum()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
+
 
 
 if __name__ == '__main__':

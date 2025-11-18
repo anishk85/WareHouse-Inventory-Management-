@@ -175,6 +175,9 @@ controller_manager:
 
     mecanum_drive_controller:
       type: velocity_controllers/JointGroupVelocityController
+    
+    lift_position_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
 
 mecanum_drive_controller:
   ros__parameters:
@@ -196,3 +199,15 @@ joint_state_broadcaster:
   ros__parameters:
     use_sim_time: true
     publish_rate: 50.0
+
+lift_position_controller:
+  ros__parameters:
+    joints:
+      - lift_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    gains:
+      lift_joint: { p: 150.0, i: 0.0, d: 10.0 }

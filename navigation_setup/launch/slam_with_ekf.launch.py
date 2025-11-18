@@ -8,6 +8,7 @@ This launch file starts:
 
 This is the standard, robust setup for mapping.
 """
+
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -67,18 +68,18 @@ def generate_launch_description():
         name='ekf_filter_node',
         output='screen',
         parameters=[ekf_params_file, {'use_sim_time': use_sim_time}],
+        
         # This remapping is CRUCIAL.
         # It takes the EKF's "fixed" odometry (/odom/filtered)
         # and publishes it on the /odom topic.
         # SLAM Toolbox gets its odometry data from the /odom -> /base_link
         # TF published by this node.
+        
         remappings=[('/odom/filtered', '/odom')]
     )
 
     # Start the SLAM Toolbox node
-    # This node takes the clean TF from the EKF and the /scan
-    # from the Lidar to build the map and publish the
-    # map -> odom transform (the global correction).
+
     start_async_slam_toolbox_node = Node(
         parameters=[
             slam_params,
@@ -91,6 +92,7 @@ def generate_launch_description():
     )
     
     # Start RViz node
+    
     rviz_node = Node(
         condition=IfCondition(use_rviz),
         package='rviz2',
@@ -109,6 +111,7 @@ def generate_launch_description():
     ld.add_action(declare_use_sim_time_cmd)
     ld.add_action(declare_slam_params_file_cmd)
     ld.add_action(declare_use_rviz_cmd)
+    
     
     # Add nodes to the launch description
     ld.add_action(start_ekf_node)

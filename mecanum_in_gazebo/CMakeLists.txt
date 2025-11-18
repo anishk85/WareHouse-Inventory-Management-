@@ -34,11 +34,17 @@ install(DIRECTORY meshes
   DESTINATION share/${PROJECT_NAME}/
 )
 
+# Install config files
+install(DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}/
+)
+
 # Install scripts
 install(PROGRAMS
   scripts/mecanum_teleop_key.py
   scripts/odom_tf_publisher.py
   scripts/cmd_vel_to_mecanum.py
+  scripts/final_teleop.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

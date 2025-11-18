@@ -47,6 +47,7 @@ def generate_launch_description():
     x_pose = LaunchConfiguration('x_pose')
     y_pose = LaunchConfiguration('y_pose')
     z_pose = LaunchConfiguration('z_pose')
+    rot_pose = LaunchConfiguration('rot_pose')
     
 
     declare_use_sim_time_cmd = DeclareLaunchArgument(
@@ -77,6 +78,11 @@ def generate_launch_description():
         'z_pose',
         default_value='0.055',
         description='Z position of the robot'
+    )
+    declare_rot_cmd=DeclareLaunchArgument(
+        'rot_pose',
+        default_value='3.14',
+        description='Rotation of the robot'
     )
     
 
@@ -124,6 +130,7 @@ def generate_launch_description():
             '-x', x_pose,
             '-y', y_pose,
             '-z', z_pose,
+            '-Y', rot_pose,
             '-timeout', '60.0'
         ],
         output='screen'
@@ -144,6 +151,13 @@ def generate_launch_description():
         arguments=['mecanum_drive_controller', '--controller-manager', '/controller_manager'],
         output='screen'
     )
+    load_lift_controller_cmd = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['lift_position_controller', '--controller-manager', '/controller_manager'],
+        output='screen'
+    )
+
 
     # lidar_static_tf = Node(
     #     package='tf2_ros',
@@ -185,6 +199,7 @@ def generate_launch_description():
     ld.add_action(declare_x_position_cmd)
     ld.add_action(declare_y_position_cmd)
     ld.add_action(declare_z_position_cmd)
+    ld.add_action(declare_rot_cmd)
 
     ld.add_action(robot_state_publisher_node)
     ld.add_action(gzserver_cmd)
@@ -205,5 +220,29 @@ def generate_launch_description():
             )
         )
     )
+    ld.add_action(
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=load_mecanum_controller_cmd,
+                on_exit=[load_lift_controller_cmd]
+            )
+        )
+    )
+    teleop_node = Node(
+        package='teleop_twist_joy',
+        executable='teleop_node',
+        name='teleop_twist_joy_node',
+        parameters=[os.path.join(pkg_share, 'config', 'teleop_joy.yaml')],
+        output='screen'
+    )
+
+    joy_node = Node(
+        package='joy',
+        executable='joy_node',
+        name='joy_node',
+        output='screen'
+    )
+
+
     
     return ld

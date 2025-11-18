@@ -279,7 +279,7 @@
         <visual name='rack'>
           <geometry>
             <mesh>
-              <uri>model://mymodel/meshes/model.dae</uri>
+              <uri>model://racks/meshes/model.dae</uri>
               <submesh>
                 <name>rack</name>
               </submesh>
@@ -296,7 +296,7 @@
         <collision name='collision'>
           <geometry>
             <mesh>
-              <uri>model://mymodel/meshes/model.dae</uri>
+              <uri>model://racks/meshes/model.dae</uri>
             </mesh>
           </geometry>
           <surface>
@@ -326,7 +326,7 @@
         <visual name='rack'>
           <geometry>
             <mesh>
-              <uri>model://mymodel/meshes/model.dae</uri>
+              <uri>model://racks/meshes/model.dae</uri>
               <submesh>
                 <name>rack</name>
               </submesh>
@@ -343,7 +343,7 @@
         <collision name='collision'>
           <geometry>
             <mesh>
-              <uri>model://mymodel/meshes/model.dae</uri>
+              <uri>model://racks/meshes/model.dae</uri>
             </mesh>
           </geometry>
           <surface>
@@ -373,7 +373,7 @@
         <visual name='rack'>
           <geometry>
             <mesh>
-              <uri>model://mymodel/meshes/model.dae</uri>
+              <uri>model://racks/meshes/model.dae</uri>
               <submesh>
                 <name>rack</name>
               </submesh>
@@ -390,7 +390,7 @@
         <collision name='collision'>
           <geometry>
             <mesh>
-              <uri>model://mymodel/meshes/model.dae</uri>
+              <uri>model://racks/meshes/model.dae</uri>
             </mesh>
           </geometry>
           <surface>
@@ -420,7 +420,7 @@
         <visual name='rack'>
           <geometry>
             <mesh>
-              <uri>model://mymodel/meshes/model.dae</uri>
+              <uri>model://racks/meshes/model.dae</uri>
               <submesh>
                 <name>rack</name>
               </submesh>
@@ -437,7 +437,7 @@
         <collision name='collision'>
           <geometry>
             <mesh>
-              <uri>model://mymodel/meshes/model.dae</uri>
+              <uri>model://racks/meshes/model.dae</uri>
             </mesh>
           </geometry>
           <surface>
@@ -467,7 +467,7 @@
         <visual name='rack'>
           <geometry>
             <mesh>
-              <uri>model://mymodel/meshes/model.dae</uri>
+              <uri>model://racks/meshes/model.dae</uri>
               <submesh>
                 <name>rack</name>
               </submesh>
@@ -484,7 +484,7 @@
         <collision name='collision'>
           <geometry>
             <mesh>
-              <uri>model://mymodel/meshes/model.dae</uri>
+              <uri>model://racks/meshes/model.dae</uri>
             </mesh>
           </geometry>
           <surface>
@@ -508,7 +508,7 @@
       </link>
       <pose>1.19251 -0.330613 0 0 -0 0</pose>
     </model>
-    <state world_name='default'>
+    <state world_name='arena_world'>
       <sim_time>1149 904000000</sim_time>
       <real_time>620 595584592</real_time>
       <wall_time>1762591062 915875</wall_time>
@@ -601,7 +601,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='my_model_4'>
+      <model name='tape_model'>
         <pose>-0.486878 2.50531 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='my_model_link'>
@@ -611,16 +611,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='unit_cylinder'>
-        <pose>-1.46666 3.88261 0.329302 -1.6e-05 -8e-06 -0.000103</pose>
-        <scale>0.197139 0.197139 0.638618</scale>
-        <link name='link'>
-          <pose>-1.46666 3.88261 0.329302 -1.6e-05 -8e-06 -0.000103</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 -9.8 0 -0 0</acceleration>
-          <wrench>0 0 -9.8 0 -0 0</wrench>
-        </link>
-      </model>
+     
       <model name='unit_cylinder_clone'>
         <pose>-0.2625 3.88914 0.329309 0 0 -1.6e-05</pose>
         <scale>1 1 1</scale>
@@ -682,16 +673,18 @@
         <projection_type>perspective</projection_type>
       </camera>
     </gui>
-    <model name='my_model_4'>
+    <model name='tape_model'>
       <static>1</static>
       <link name='my_model_link'>
         <visual name='path'>
           <geometry>
             <mesh>
-              <uri>model://mymodel10/meshes/model.dae</uri>
+              <uri>model://tapes/meshes/model.dae</uri>
               <submesh>
                 <name>path</name>
               </submesh>
+              <scale>1 1 1</scale>
+
             </mesh>
           </geometry>
           <material>
@@ -702,88 +695,15 @@
             </pbr>
           </material>
         </visual>
-        <collision name='collision'>
-          <geometry>
-            <mesh>
-              <uri>model://mymodel10/meshes/model.dae</uri>
-            </mesh>
-          </geometry>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <bounce/>
-            <friction>
-              <torsional>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-            <collide_bitmask>0x01</collide_bitmask>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
+
+
         <self_collide>0</self_collide>
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
       <pose>-0.486878 2.50531 0 0 -0 0</pose>
     </model>
-    <model name='unit_cylinder'>
-      <pose>-1.19343 2.83003 0.5 0 -0 0</pose>
-      <link name='link'>
-        <inertial>
-          <mass>1</mass>
-          <inertia>
-            <ixx>0.145833</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>0.145833</iyy>
-            <iyz>0</iyz>
-            <izz>0.125</izz>
-          </inertia>
-          <pose>0 0 0 0 -0 0</pose>
-        </inertial>
-        <collision name='collision'>
-          <geometry>
-            <cylinder>
-              <radius>0.500001</radius>
-              <length>1</length>
-            </cylinder>
-          </geometry>
-          <max_contacts>10</max_contacts>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <bounce/>
-            <friction>
-              <torsional>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-          </surface>
-        </collision>
-        <visual name='visual'>
-          <geometry>
-            <cylinder>
-              <radius>0.500001</radius>
-              <length>1</length>
-            </cylinder>
-          </geometry>
-          <material>
-            <script>
-              <name>Gazebo/Grey</name>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-            </script>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-    </model>
+   
     <model name='unit_cylinder_clone'>
       <pose>-0.262501 3.88914 0.32931 -1e-05 -5e-06 -1e-06</pose>
       <link name='link'>

@@ -3,21 +3,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     return LaunchDescription([
-        # Camera
-        Node(
-            package='usb_cam',
-            executable='usb_cam_node_exe',
-            name='usb_cam',
-            parameters=[{
-                'video_device': '/dev/video0',
-                'framerate': 10.0,
-                'image_width': 1280,
-                'image_height': 720
-            }],
-            output='screen'
-        ),
-        
-        # Enhanced QR Detector
+        # Enhanced QR Detector - USING LIFT CAMERA
         Node(
             package='warehouse_rover_image_processing',
             executable='qr_detector_enhanced_node',
@@ -25,12 +11,12 @@ def generate_launch_description():
             parameters=[{
                 'enable_visualization': True,
                 'enable_ipt': True,
-                'enable_adaptive': True,
+                'enable_multipass': True,
                 'target_width': 1280,
                 'target_height': 720
             }],
             remappings=[
-                ('/camera/image_raw', '/image_raw')
+                ('/camera/image_raw', '/lift_camera/image_raw')  # ← LIFT CAMERA!
             ],
             output='screen'
         ),

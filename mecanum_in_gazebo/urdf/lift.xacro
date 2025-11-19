@@ -37,7 +37,7 @@
       <origin xyz="${origin_xyz}" rpy="${origin_rpy}"/>
       <axis xyz="0 0 1"/>
 
-      <limit lower="0.0" upper="0.35" velocity="0.2" effort="200"/>
+      <limit lower="0.0" upper="3.0" velocity="0.2" effort="200"/>
     </joint>
 
   </xacro:macro>

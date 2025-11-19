@@ -25,6 +25,7 @@ def generate_launch_description():
 
     urdf_file = os.path.join(pkg_share, 'urdf', 'mec_rob.xacro')
     world_file = os.path.join(pkg_share, 'arena', 'arena.world')
+    # world_file=""
     controller_config = os.path.join(pkg_share, 'launch', 'controller.yaml')
     
 
@@ -228,21 +229,6 @@ def generate_launch_description():
             )
         )
     )
-    teleop_node = Node(
-        package='teleop_twist_joy',
-        executable='teleop_node',
-        name='teleop_twist_joy_node',
-        parameters=[os.path.join(pkg_share, 'config', 'teleop_joy.yaml')],
-        output='screen'
-    )
-
-    joy_node = Node(
-        package='joy',
-        executable='joy_node',
-        name='joy_node',
-        output='screen'
-    )
-
 
     
     return ld

@@ -31,6 +31,95 @@
           <collide_bitmask>0x01</collide_bitmask>
         </surface>
       </collision>
+            <!-- QR 1 -->
+      <visual name="qr_panel_1">
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>0.20 0.20</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://racks/materials/scripts</uri>
+            <uri>model://racks/materials/textures</uri>
+            <name>QR/MAT_1</name>
+          </script>
+        </material>
+        <pose>0.50 0 1.20 0 1.57 0</pose>
+      </visual>
+
+      <!-- QR 2 -->
+      <visual name="qr_panel_2">
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>0.20 0.20</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://racks/materials/scripts</uri>
+            <uri>model://racks/materials/textures</uri>
+            <name>QR/MAT_2</name>
+          </script>
+        </material>
+        <pose>0.20 0 1.20 0 1.57 0</pose>
+      </visual>
+
+      <!-- QR 3 -->
+      <visual name="qr_panel_3">
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>0.20 0.20</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://racks/materials/scripts</uri>
+            <uri>model://racks/materials/textures</uri>
+            <name>QR/MAT_3</name>
+          </script>
+        </material>
+        <pose>-0.10 0 1.20 0 1.57 0</pose>
+      </visual>
+
+      <!-- QR 4 -->
+      <visual name="qr_panel_4">
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>0.20 0.20</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://racks/materials/scripts</uri>
+            <uri>model://racks/materials/textures</uri>
+            <name>QR/MAT_4</name>
+          </script>
+        </material>
+        <pose>-0.40 0 1.20 0 1.57 0</pose>
+      </visual>
+
+      <!-- QR 99 -->
+      <visual name="qr_panel_99">
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>0.20 0.20</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://racks/materials/scripts</uri>
+            <uri>model://racks/materials/textures</uri>
+            <name>QR/MAT_99</name>
+          </script>
+        </material>
+        <pose>0 0 0.70 0 1.57 0</pose>
+      </visual>
     </link>
   </model>
 </sdf>

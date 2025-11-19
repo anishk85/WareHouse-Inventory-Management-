@@ -41,6 +41,7 @@ install(DIRECTORY config
 
 # Install scripts
 install(PROGRAMS
+  scripts/velocity_smoother.py
   scripts/mecanum_teleop_key.py
   scripts/odom_tf_publisher.py
   scripts/cmd_vel_to_mecanum.py

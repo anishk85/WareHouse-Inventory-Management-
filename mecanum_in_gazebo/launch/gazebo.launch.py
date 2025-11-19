@@ -26,7 +26,7 @@ def generate_launch_description():
     urdf_file = os.path.join(pkg_share, 'urdf', 'mec_rob.xacro')
     world_file = os.path.join(pkg_share, 'arena', 'arena.world')
     # world_file=""
-    controller_config = os.path.join(pkg_share, 'launch', 'controller.yaml')
+    controller_config = os.path.join(pkg_share, 'config', 'controller.yaml')
     
 
     gazebo_models_path = os.path.join(pkg_share, 'meshes')
@@ -186,6 +186,30 @@ def generate_launch_description():
     #     parameters=[{'use_sim_time': True}],
     #     output='screen'
     # )
+    joy_node = Node(
+        package="joy",
+        executable="joy_node",
+        parameters=[{"dev": "/dev/input/js0"}],
+        output="screen"
+    )
+
+    teleop = Node(
+        package="teleop_twist_joy",
+        executable="teleop_node",
+        name="teleop_twist_joy",
+        parameters=[{
+            "axis_linear.x": 1,       # left stick up/down
+            "axis_linear.y": 0,       # left stick left/right
+            "axis_angular.yaw": 3,    # right stick left/right
+            "scale_linear.x": 5,
+            "scale_linear.y": 5,
+            "scale_angular.yaw": 5,
+        }],
+        remappings=[
+            ("/cmd_vel", "/cmd_vel")   # what your mecanum converter subscribes to
+        ],
+        output="screen"
+    )
     
 
     ld = LaunchDescription()
@@ -203,6 +227,9 @@ def generate_launch_description():
     ld.add_action(declare_rot_cmd)
 
     ld.add_action(robot_state_publisher_node)
+    ld.add_action(joy_node)
+    ld.add_action(teleop)
+
     ld.add_action(gzserver_cmd)
     ld.add_action(gzclient_cmd)
     # ld.add_action(TimerAction(period=2.0, actions=[lidar_static_tf]))

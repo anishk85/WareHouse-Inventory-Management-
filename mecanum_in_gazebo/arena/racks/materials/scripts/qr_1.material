@@ -1,21 +1,13 @@
-material QR/MAT_1
+material QR_1
 {
-  receive_shadows off
   technique
   {
     pass
     {
-      cull_hardware none
-      cull_software none
-      ambient 1.0 1.0 1.0 1.0
-      diffuse 1.0 1.0 1.0 1.0
-      specular 0.0 0.0 0.0 1.0
-      
       texture_unit
       {
-        texture ../textures/1.png
+        texture 1.png
         filtering trilinear
-        scale 1.0 1.0
       }
     }
   }

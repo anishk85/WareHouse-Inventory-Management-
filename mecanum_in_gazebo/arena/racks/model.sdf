@@ -6,7 +6,7 @@
       <visual name="rack">
         <geometry>
           <mesh>
-            <uri>meshes/model.dae</uri>
+            <uri>model://racks/meshes/model.dae</uri>
             <submesh>
               <name>rack</name>
             </submesh>
@@ -20,10 +20,11 @@
           </pbr>
         </material>
       </visual>
+      
       <collision name="collision">
         <geometry>
           <mesh>
-            <uri>meshes/model.dae</uri>
+            <uri>model://racks/meshes/model.dae</uri>
           </mesh>
         </geometry>
         <surface>
@@ -31,8 +32,10 @@
           <collide_bitmask>0x01</collide_bitmask>
         </surface>
       </collision>
-            <!-- QR 1 -->
-      <visual name="qr_panel_1">
+
+      <!-- QR 1 -->
+      <visual name="qr_visual_1">
+        <pose>0.50 0 1.20 0 1.57 0</pose>
         <geometry>
           <plane>
             <normal>0 0 1</normal>
@@ -42,15 +45,14 @@
         <material>
           <script>
             <uri>model://racks/materials/scripts</uri>
-            <uri>model://racks/materials/textures</uri>
-            <name>QR/MAT_1</name>
+            <name>QR_1</name>
           </script>
         </material>
-        <pose>0.50 0 1.20 0 1.57 0</pose>
       </visual>
 
       <!-- QR 2 -->
-      <visual name="qr_panel_2">
+      <visual name="qr_visual_2">
+        <pose>0.20 0 1.20 0 1.57 0</pose>
         <geometry>
           <plane>
             <normal>0 0 1</normal>
@@ -60,15 +62,14 @@
         <material>
           <script>
             <uri>model://racks/materials/scripts</uri>
-            <uri>model://racks/materials/textures</uri>
-            <name>QR/MAT_2</name>
+            <name>QR_2</name>
           </script>
         </material>
-        <pose>0.20 0 1.20 0 1.57 0</pose>
       </visual>
 
       <!-- QR 3 -->
-      <visual name="qr_panel_3">
+      <visual name="qr_visual_3">
+        <pose>-0.10 0 1.20 0 1.57 0</pose>
         <geometry>
           <plane>
             <normal>0 0 1</normal>
@@ -78,15 +79,14 @@
         <material>
           <script>
             <uri>model://racks/materials/scripts</uri>
-            <uri>model://racks/materials/textures</uri>
-            <name>QR/MAT_3</name>
+            <name>QR_3</name>
           </script>
         </material>
-        <pose>-0.10 0 1.20 0 1.57 0</pose>
       </visual>
 
       <!-- QR 4 -->
-      <visual name="qr_panel_4">
+      <visual name="qr_visual_4">
+        <pose>-0.40 0 1.20 0 1.57 0</pose>
         <geometry>
           <plane>
             <normal>0 0 1</normal>
@@ -96,15 +96,14 @@
         <material>
           <script>
             <uri>model://racks/materials/scripts</uri>
-            <uri>model://racks/materials/textures</uri>
-            <name>QR/MAT_4</name>
+            <name>QR_4</name>
           </script>
         </material>
-        <pose>-0.40 0 1.20 0 1.57 0</pose>
       </visual>
 
       <!-- QR 99 -->
-      <visual name="qr_panel_99">
+      <visual name="qr_visual_99">
+        <pose>0 0 0.70 0 1.57 0</pose>
         <geometry>
           <plane>
             <normal>0 0 1</normal>
@@ -114,11 +113,9 @@
         <material>
           <script>
             <uri>model://racks/materials/scripts</uri>
-            <uri>model://racks/materials/textures</uri>
-            <name>QR/MAT_99</name>
+            <name>QR_99</name>
           </script>
         </material>
-        <pose>0 0 0.70 0 1.57 0</pose>
       </visual>
     </link>
   </model>

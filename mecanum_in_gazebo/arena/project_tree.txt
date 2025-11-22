@@ -1,0 +1,20 @@
+.
+├── arena.world
+├── project_tree.txt
+├── qr_codes
+│   └── qrcode1.png
+├── racks
+│   ├── meshes
+│   │   └── model.dae
+│   ├── model.config
+│   └── model.sdf
+├── tapes
+│   ├── meshes
+│   │   └── model.dae
+│   ├── model.config
+│   └── model.sdf
+└── walls
+    ├── model.config
+    └── model.sdf
+
+6 directories, 11 files

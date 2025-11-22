@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="qr_codes">
+    <static>true</static>
+    <link name="link">
+      <visual name="visual">
+        <geometry><box><size>0.1 0.1 0.001</size></box></geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

@@ -64,40 +64,40 @@ void MissionController::loadWaypoints()
   // MEASURED RACK POSITIONS
   RackWaypoint r1;
   r1.name = "RACK_1";
-  r1.x = -1.906 - 0.6;
-  r1.y = 4.311;
+  r1.x = -1.787;
+  r1.y = 3.949;
   r1.theta = 0.0 * M_PI / 180.0;
   r1.shelf_heights = {0.0, 0.25, 0.50, 0.75};
   waypoints_.push_back(r1);
   
   RackWaypoint r2;
   r2.name = "RACK_2";
-  r2.x = -0.807 - 0.6;
-  r2.y = 4.363;
+  r2.x = -0.582;
+  r2.y = 3.960;
   r2.theta = 0.0 * M_PI / 180.0;
   r2.shelf_heights = {0.0, 0.25, 0.50, 0.75};
   waypoints_.push_back(r2);
   
   RackWaypoint r3;
   r3.name = "RACK_3";
-  r3.x = 0.112 + 0.6;
-  r3.y = 3.595;
+  r3.x = -0.322;
+  r3.y = 3.634;
   r3.theta = 180.0 * M_PI / 180.0;
   r3.shelf_heights = {0.0, 0.25, 0.50, 0.75};
   waypoints_.push_back(r3);
   
   RackWaypoint r4;
   r4.name = "RACK_4";
-  r4.x = 0.104 + 0.6;
-  r4.y = 2.514;
+  r4.x = -0.308;
+  r4.y = 2.575;
   r4.theta = 180.0 * M_PI / 180.0;
   r4.shelf_heights = {0.0, 0.25, 0.50, 0.75};
   waypoints_.push_back(r4);
   
   RackWaypoint r5;
   r5.name = "RACK_5";
-  r5.x = 0.078 + 0.6;
-  r5.y = 1.412;
+  r5.x = -0.205;
+  r5.y = 1.463;
   r5.theta = 180.0 * M_PI / 180.0;
   r5.shelf_heights = {0.0, 0.25, 0.50, 0.75};
   waypoints_.push_back(r5);

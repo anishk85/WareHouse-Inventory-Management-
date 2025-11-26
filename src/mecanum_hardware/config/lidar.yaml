@@ -1,0 +1,27 @@
+/**:
+  ros__parameters:
+    # SLAMTEC RPLidar Configuration (sllidar_ros2 package)
+    # Supports A1, A2, A3 models
+    
+    # Channel configuration
+    channel_type: serial          # serial (USB), udp (network)
+    serial_port: /dev/ttyUSB2     # USB serial port
+    serial_baudrate: 115200       # Standard baudrate for A1/A2
+    
+    # Frame configuration
+    frame_id: lidar_link          # TF frame name
+    
+    # Data processing
+    inverted: false               # Invert scan direction (false for standard mounting)
+    angle_compensate: true        # Enable angle compensation for motor speed variations
+    
+    # Scan mode
+    # A1: Standard, Express
+    # A2: Standard, Express, Boost, Sensitivity, Stability
+    # A3: Standard, Express, Boost, Sensitivity, Stability
+    scan_mode: Standard
+    
+    # Range limits (meters)
+    # A1: 0.15-12m, A2: 0.15-18m, A3: 0.2-25m
+    range_min: 0.15
+    range_max: 12.0

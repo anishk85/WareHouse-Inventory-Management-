@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>mecanum_in_gazebo</name>
+  <version>0.1.0</version>
+  <description>The mecanum_in_gazebo package converted for ROS 2 (ament).</description>
+
+  <maintainer email="you@example.com">you</maintainer>
+
+  <license>GPL-2.0</license>
+
+
+  <author email="you@example.com">you</author>
+
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+
+  <build_depend>rclcpp</build_depend>
+  <build_depend>xacro</build_depend>
+  <build_depend>robot_state_publisher</build_depend>
+
+  <exec_depend>rclcpp</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher_gui</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>mecanum_drive_controller</exec_depend>
+  <exec_depend>joint_state_broadcaster</exec_depend>
+  <!-- <exec_depend>gazebo_ros2_control</exec_depend> -->
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+
+</package>

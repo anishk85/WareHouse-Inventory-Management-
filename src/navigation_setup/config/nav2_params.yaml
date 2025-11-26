@@ -5,12 +5,12 @@
 # AMCL Configuration for Mecanum Robot
 amcl:
   ros__parameters:
-    use_sim_time: True
-    alpha1: 0.05              # Rotation noise from rotation
-    alpha2: 0.05              # Rotation noise from translation
-    alpha3: 0.05              # Translation noise from translation
-    alpha4: 0.1             # Translation noise from rotation
-    alpha5: 0.2              # Translation noise
+    use_sim_time: False
+    alpha1: 0.2              # Rotation noise from rotation
+    alpha2: 0.2              # Rotation noise from translation
+    alpha3: 0.2             # Translation noise from translation
+    alpha4: 0.2               # Translation noise from rotation
+    alpha5: 0.2               # Translation noise
     base_frame_id: "base_link"
     beam_skip_distance: 0.5
     beam_skip_error_threshold: 0.9
@@ -47,7 +47,7 @@ amcl:
 
 bt_navigator:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: False
     global_frame: map
     robot_base_frame: base_link
     odom_topic: /odom
@@ -111,15 +111,15 @@ bt_navigator:
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: False
 
 bt_navigator_navigate_to_pose_rclcpp_node:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: False
 
 controller_server:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: False
     controller_frequency: 10.0
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.001
@@ -184,7 +184,7 @@ controller_server:
 local_costmap:
   local_costmap:
     ros__parameters:
-      use_sim_time: True
+      use_sim_time: False
       update_frequency: 5.0
       publish_frequency: 2.0
       global_frame: odom
@@ -193,69 +193,27 @@ local_costmap:
       width: 5
       height: 5
       resolution: 0.05
-      # Robot footprint from URDF: wheelbase=0.25m, track=0.30m, with safety margin
-      footprint: "[[-0.15, -0.18], [-0.15, 0.18], [0.15, 0.18], [0.15, -0.18]]"
-      plugins: ["stvl_layer", "inflation_layer"]
+      # Robot footprint from URDF: wheelbase=0.25m, track=0.30m, with safety margin //need to update comment rest footprints are correct
+      footprint: "[[0.275, 0.21], [0.275, -0.21], [-0.275, -0.21], [-0.275, 0.21]]"
+      plugins: ["obstacle_layer", "inflation_layer"]
       transform_tolerance: 1.0
       
-      # STVL (Spatio-Temporal Voxel Layer) with depth camera
-      stvl_layer:
-        plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
+      # Obstacle layer with laser scan only
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        voxel_decay: 15.0
-        decay_model: 0
-        voxel_size: 0.05
-        track_unknown_space: true
-        observation_persistence: 0.0
-        max_obstacle_height: 2.0
-        unknown_threshold: 15
-        mark_threshold: 0
-        update_footprint_enabled: true
-        combination_method: 1
-        origin_z: 0.0
-        publish_voxel_map: true
-        transform_tolerance: 0.5
-        mapping_mode: false
-        map_save_duration: 60.0
-        observation_sources: depth_camera scan
+        observation_sources: scan
         
-        # Depth camera configuration
-        depth_camera:
-          data_type: PointCloud2
-          topic: /camera_depth/points
-          marking: true
-          clearing: true
-          obstacle_range: 3.0
-          min_obstacle_height: 0.0
-          max_obstacle_height: 2.0
-          expected_update_rate: 0.0
-          observation_persistence: 0.0
-          inf_is_valid: false
-          filter: "voxel"
-          voxel_min_points: 0
-          clear_after_reading: true
-          max_z: 7.0
-          min_z: 0.1
-          vertical_fov_angle: 0.7
-          horizontal_fov_angle: 1.04
-          decay_acceleration: 1.0
-          model_type: 0
-          
-        # Laser scan configuration
         scan:
-          data_type: LaserScan
           topic: /scan
+          data_type: "LaserScan"
           marking: true
           clearing: true
           obstacle_range: 2.5
+          raytrace_range: 3.0
           min_obstacle_height: 0.0
           max_obstacle_height: 2.0
-          expected_update_rate: 0.0
-          observation_persistence: 0.0
           inf_is_valid: false
-          clear_after_reading: true
-          max_z: 7.0
-          min_z: 0.0
           
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
@@ -267,49 +225,38 @@ local_costmap:
 global_costmap:
   global_costmap:
     ros__parameters:
-      use_sim_time: True
+      use_sim_time: False
       update_frequency: 1.0
       publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_link
-      # Robot footprint : wheelbase=0.25m, track=0.30m, with safety margin
-      footprint: "[[-0.15, -0.18], [-0.15, 0.18], [0.15, 0.18], [0.15, -0.18]]"
+      # Robot footprint: wheelbase=0.25m, track=0.30m, with safety margin //need to update comment rest footprints are correct
+      footprint: "[[0.275, 0.21], [0.275, -0.21], [-0.275, -0.21], [-0.275, 0.21]]"
       resolution: 0.05
       track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       transform_tolerance: 1.0
       
-      obstacle_layer:
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: True
-        observation_sources: scan depth_camera
-        
-        scan:
-          topic: /scan
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
-          obstacle_min_range: 0.0
-          
-        depth_camera:
-          topic: /camera_depth/points
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "PointCloud2"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
-          obstacle_min_range: 0.0
-          
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
+      
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
         
+        scan:
+          topic: /scan
+          data_type: "LaserScan"
+          marking: True
+          clearing: True
+          max_obstacle_height: 2.0
+          raytrace_max_range: 3.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.5
+          obstacle_min_range: 0.0
+          
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
@@ -317,15 +264,15 @@ global_costmap:
         
       always_send_full_costmap: True
 
-
 map_server:
   ros__parameters:
-    use_sim_time: True
-    yaml_filename: ""  
+    use_sim_time: False
+    yaml_filename: "/root/ros2_ws/src/navigation_setup/maps/maps.yaml"
+    #add params in launch file to set this 
 
 planner_server:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: False
     expected_planner_frequency: 5.0
     planner_plugins: ["GridBased"]
     GridBased:
@@ -336,7 +283,7 @@ planner_server:
 
 smoother_server:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: False
     smoother_plugins: ["simple_smoother"]
     simple_smoother:
       plugin: "nav2_smoother::SimpleSmoother"
@@ -346,7 +293,7 @@ smoother_server:
 
 behavior_server:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: False
     local_costmap_topic: local_costmap/costmap_raw
     local_footprint_topic: local_costmap/published_footprint
     global_costmap_topic: global_costmap/costmap_raw
@@ -370,11 +317,11 @@ behavior_server:
     simulate_ahead_time: 2.0
     max_rotational_vel: 0.8
     min_rotational_vel: 0.2
-    rotational_acc_lim: 1.0      
+    rotational_acc_lim: 1.0
 
 waypoint_follower:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: False
     loop_rate: 20
     stop_on_failure: false
     waypoint_task_executor_plugin: "wait_at_waypoint"
@@ -385,14 +332,14 @@ waypoint_follower:
 
 velocity_smoother:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: False
     smoothing_frequency: 20.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.20, 0.20, 1.0]         
-    min_velocity: [-0.20, -0.20, -1.0]      
-    max_accel: [1.0, 1.0, 1.5]            
-    max_decel: [-1.0, -1.0, -1.5]         
+    max_velocity: [1.20, 1.20, 1.0]
+    min_velocity: [-0.20, -0.20, -1.0]
+    max_accel: [1.0, 1.0, 1.5]
+    max_decel: [-1.0, -1.0, -1.5]
     odom_topic: "/odom"
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
@@ -400,7 +347,7 @@ velocity_smoother:
 
 collision_monitor:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: False
     base_frame_id: "base_link"
     odom_frame_id: "odom"
     cmd_vel_in_topic: "cmd_vel_smoothed"
@@ -426,12 +373,23 @@ collision_monitor:
       slowdown_ratio: 0.5
       visualize: true
       polygon_pub_topic: "polygon_slowdown"
-    observation_sources: ["scan", "depth_camera"]
+    observation_sources: ["scan"]
     scan:
       type: "scan"
       topic: "/scan"
       source_timeout: 0.2
-    depth_camera:
-      type: "pointcloud"
-      topic: "/camera_depth/points"
-      source_timeout: 0.2
+
+# Lifecycle manager configurations for autostart
+lifecycle_manager_localization:
+  ros__parameters:
+    use_sim_time: False
+    autostart: true
+    node_names: ['map_server', 'amcl']
+
+lifecycle_manager_navigation:
+  ros__parameters:
+    use_sim_time: False
+    autostart: true
+    node_names: ['controller_server', 'planner_server', 'behavior_server', 
+                 'bt_navigator', 'waypoint_follower', 'velocity_smoother', 
+                 'smoother_server']

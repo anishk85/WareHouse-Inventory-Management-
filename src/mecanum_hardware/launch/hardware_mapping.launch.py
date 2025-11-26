@@ -34,7 +34,7 @@ def generate_launch_description():
     # ================= 3. SENSOR NODES =================
     
     # RPLidar Node
-    # Note: TF (base_link -> lidar_link) is provided by 'robot_state_publisher' in Terminal 1
+    # Note: TF (base_link -> lidar_link) is provided by 'robot_state_publisher' in Terminal 1 launch hardware.launch.py in terminal 1
     rplidar_node = Node(
         package='rplidar_ros',
         executable='rplidar_composition',

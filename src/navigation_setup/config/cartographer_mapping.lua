@@ -66,15 +66,15 @@ TRAJECTORY_BUILDER_2D.missing_data_ray_length = 12.0
 
 -- Online Scan Matching (improves accuracy in real-time)
 TRAJECTORY_BUILDER_2D.use_online_correlative_scan_matching = true
-TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.linear_search_window = 0.1
+TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.linear_search_window = 0.2
 TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.angular_search_window = math.rad(20.)
 TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.translation_delta_cost_weight = 10.
 TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.rotation_delta_cost_weight = 1e-1
 
 -- Ceres Scan Matcher (fine-tuning for mecanum wheels)
-TRAJECTORY_BUILDER_2D.ceres_scan_matcher.occupied_space_weight = 1.
+TRAJECTORY_BUILDER_2D.ceres_scan_matcher.occupied_space_weight = 10.
 TRAJECTORY_BUILDER_2D.ceres_scan_matcher.translation_weight = 10.
-TRAJECTORY_BUILDER_2D.ceres_scan_matcher.rotation_weight = 40.
+TRAJECTORY_BUILDER_2D.ceres_scan_matcher.rotation_weight = 1.
 TRAJECTORY_BUILDER_2D.ceres_scan_matcher.ceres_solver_options.use_nonmonotonic_steps = false
 TRAJECTORY_BUILDER_2D.ceres_scan_matcher.ceres_solver_options.max_num_iterations = 20
 TRAJECTORY_BUILDER_2D.ceres_scan_matcher.ceres_solver_options.num_threads = 1
@@ -99,11 +99,11 @@ MAP_BUILDER.num_background_threads = 4
 -- ========================================
 
 -- Loop Closure Detection
-POSE_GRAPH.optimize_every_n_nodes = 90
-POSE_GRAPH.constraint_builder.min_score = 0.55
+POSE_GRAPH.optimize_every_n_nodes = 20
+POSE_GRAPH.constraint_builder.min_score = 0.65
 POSE_GRAPH.constraint_builder.global_localization_min_score = 0.6
 POSE_GRAPH.constraint_builder.max_constraint_distance = 15.
-POSE_GRAPH.constraint_builder.sampling_ratio = 0.3
+POSE_GRAPH.constraint_builder.sampling_ratio = 0.5
 
 -- Fast Correlative Scan Matcher (for loop closure)
 POSE_GRAPH.constraint_builder.fast_correlative_scan_matcher.linear_search_window = 7.
@@ -112,8 +112,8 @@ POSE_GRAPH.constraint_builder.fast_correlative_scan_matcher.branch_and_bound_dep
 
 -- Optimization Weights (trust odometry highly for mecanum)
 POSE_GRAPH.optimization_problem.huber_scale = 1e1
-POSE_GRAPH.optimization_problem.odometry_translation_weight = 1e2
-POSE_GRAPH.optimization_problem.odometry_rotation_weight = 1e2
+POSE_GRAPH.optimization_problem.odometry_translation_weight = 1e1
+POSE_GRAPH.optimization_problem.odometry_rotation_weight = 1e0
 POSE_GRAPH.optimization_problem.local_slam_pose_translation_weight = 1e5
 POSE_GRAPH.optimization_problem.local_slam_pose_rotation_weight = 1e5
 

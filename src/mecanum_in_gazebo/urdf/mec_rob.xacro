@@ -1163,7 +1163,7 @@
 </joint>
 
 <xacro:lidar_sensor parent="base_link" name="lidar">
-  <origin xyz="0 0 0.08" rpy="0 0 0"/>
+  <origin xyz="0.35 0 0.08" rpy="0 0 0"/>
 </xacro:lidar_sensor>
 
 <xacro:lidar_gazebo name="lidar"/>

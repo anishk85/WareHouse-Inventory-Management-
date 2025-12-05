@@ -147,12 +147,32 @@ def generate_launch_description():
         output="screen",
     )
     
+    load_qr_camera_controller_cmd =Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "qr_camera_controller",
+            "--controller-manager", "/controller_manager",
+            "--ros-args",
+            "--params-file", control_params_file
+        ],
+        output="screen",
+    )
+    
     ld.add_action(TimerAction(period=5.0, actions=[load_joint_broadcaster_cmd]))
     ld.add_action(
         RegisterEventHandler(
             OnProcessExit(
                 target_action=load_joint_broadcaster_cmd,
                 on_exit=[load_mecanum_controller_cmd],
+            )
+        )
+    )
+    ld.add_action(
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=load_mecanum_controller_cmd,
+                on_exit=[load_qr_camera_controller_cmd],
             )
         )
     )

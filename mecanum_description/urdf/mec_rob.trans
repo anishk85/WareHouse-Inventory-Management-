@@ -441,4 +441,15 @@
   </actuator>
 </transmission>
 
+<!-- <transmission name="qr_camera_trans">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="qr_camera_prismatic_joint">
+    <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="qr_camera_motor">
+    <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission> -->
+
 </robot>

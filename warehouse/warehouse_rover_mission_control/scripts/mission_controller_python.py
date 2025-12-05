@@ -57,11 +57,21 @@ class MissionController(Node):
         self.nav_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         
         # Publishers
+        # self.lift_pub = self.create_publisher(
+        #     JointTrajectory,
+        #     '/lift_position_controller/joint_trajectory',
+        #     10
+        # )
+        
         self.lift_pub = self.create_publisher(
-            JointTrajectory,
-            '/lift_position_controller/joint_trajectory',
+             Float64MultiArray,
+            '/qr_camera_controller/commands',
             10
         )
+        
+        
+        self.get_logger().info('lift_pub created')
+
         
         self.marker_pub = self.create_publisher(
             MarkerArray,
@@ -147,6 +157,7 @@ class MissionController(Node):
     def load_waypoints(self):
         """Load measured rack positions"""
         # RACK 1
+        self.get_logger().info('Loading rack waypoints from map measurements...')
         r1 = RackWaypoint(
             name='RACK_1',
             x=-1.23,

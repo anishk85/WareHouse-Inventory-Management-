@@ -57,6 +57,6 @@ install(PROGRAMS
   scripts/lift_service_node.py
   scripts/measure_rack_positions.py
   scripts/auto_initialize_amcl.py
-  scripts/mission_controller.py
+  scripts/mission_controller_python.py
   DESTINATION lib/${PROJECT_NAME}
 )

@@ -280,7 +280,7 @@ def generate_launch_description():
     # Phase 7: Start mission controller (20s - after everything is ready)
     ld.add_action(TimerAction(
         period=27.0,
-        actions=[mission_controller]
+        actions=[mission_controller_python]
     ))
     
     return ld

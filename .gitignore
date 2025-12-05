@@ -55,4 +55,12 @@ __pycache__/
 .Trashes
 
 # Windows Thumbs.db
-Thumbs.db
+Thumbs.dbbuild/
+install/
+log/
+
+
+
+
+
+

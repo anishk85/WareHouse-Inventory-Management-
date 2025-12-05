@@ -1,0 +1,127 @@
+# ==========================================================
+# EKF (robot_localization) Configuration File
+#
+# For a 2D Mecanum (Holonomic) Robot
+# Fusing Wheel Odometry and an IMU
+# ==========================================================
+
+ekf_filter_node:
+  ros__parameters:
+    # --- 1. GENERAL SETTINGS ---
+    
+    # The EKF's update frequency in Hz. 30-50Hz is common.
+    frequency: 30.0
+
+    # How long to wait for sensor data (in seconds) before
+    # running a prediction step without it.
+    sensor_timeout: 0.1
+
+    # CRITICAL: This MUST be true for a 2D ground robot.
+    # It zeroes out all 3D variables (z, roll, pitch)
+    # to prevent your robot from "floating" or "flipping"
+    # due to tiny sensor noise.
+    two_d_mode: true
+
+    # --- 2. FRAME & TF CONFIGURATION ---
+    # These are the "names" of your coordinate frames.
+    
+    # The world-fixed frame for the map. SLAM will publish
+    # the transform from this frame to odom_frame.
+    map_frame: map
+
+    # The world-fixed, "drifty" frame for odometry.
+    # The EKF will publish the transform from this frame.
+    odom_frame: odom
+
+    # The frame attached to your robot's center.
+    base_link_frame: base_link
+
+    # The EKF publishes the odom -> base_link transform.
+    # Set this to `odom_frame` (the default).
+    world_frame: odom
+
+
+    # --- 3. SENSOR FUSION INPUTS ---
+    #
+    # We are fusing two sensors:
+    # 1. Wheel Odometry (odom0)
+    # 2. IMU (imu0)
+    #
+    # The _config matrix specifies which variables to fuse:
+    # [ x,  y,  z,
+    #   roll, pitch, yaw,
+    #   vx, vy, vz,
+    #   vroll, vpitch, vyaw,
+    #   ax, ay, az]
+    # (vx = x velocity, vroll = roll velocity, ax = x acceleration)
+
+    # --- Sensor 0: Wheel Odometry (from mecanum_drive_controller) ---
+    
+    # ATTENTION: This topic MUST be your *RAW* wheel odometry.
+    # As we discussed, you should change your controller to
+    # publish on "/odom_raw" and set this to "/odom_raw".
+    odom0: /odom_raw
+    
+    odom0_config:
+      [ false, false, false,   # Don't fuse x, y, z position
+        false, false, false,   # Don't fuse roll, pitch, yaw orientation
+        true,  true,  false,   # CRITICAL: Fuse vx AND vy (for holonomic motion)
+        false, false, true,    # Fuse yaw velocity (vyaw)
+        false, false, false ]  # Don't fuse acceleration
+        
+    # We are not measuring position relative to another sensor,
+    # so set this to false.
+    odom0_differential: false
+
+
+    # --- Sensor 1: IMU (Inertial Measurement Unit) ---
+    
+    # ATTENTION: This topic MUST be your IMU data topic.
+    imu0: /imu/data
+
+    imu0_config:
+      [ false, false, false,   # Don't fuse x, y, z position
+        true,  true,  true,    # CRITICAL: Fuse roll, pitch, and yaw
+        false, false, false,   # Don't fuse linear velocity
+        true,  true,  true,    # Fuse all angular velocities
+        false, false, false ]  # Don't fuse linear acceleration (too noisy)
+
+    # Set to 'false' to use the IMU's absolute yaw measurement
+    # as a "ground truth" to correct odometry drift.
+    imu0_differential: false
+
+    # Removes the effect of gravity from the IMU's
+    # linear acceleration. Highly recommended.
+    imu0_remove_gravitational_acceleration: true
+
+
+    # --- 4. ADVANCED SETTINGS (Defaults are usually fine) ---
+    
+    # For a new robot, it's good to print debug info.
+    # Change to false after it's working.
+    print_diagnostics: true
+
+    # --- Process Noise Covariance ---
+    # These "trust" values tell the EKF how much it
+    # expects the robot's state to "jump" on its own.
+    # Start with small values and increase if your
+    # estimate is too "laggy".
+
+    
+    process_noise_covariance: [
+      1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 1e-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 1e-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 1e-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 1.5, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 1.5, 0, 0, 0, 0, 0, 0, 0, # <-- vy, for holonomic
+      0, 0, 0, 0, 0, 0, 0, 0, 1e-3, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 1e-3, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1e-3, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1e-3, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1e-3, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1e-3
+    ]

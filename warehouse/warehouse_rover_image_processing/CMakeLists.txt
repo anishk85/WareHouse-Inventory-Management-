@@ -104,11 +104,6 @@ install(DIRECTORY include/
   DESTINATION include/${PROJECT_NAME}
 )
 
-# Install config files
-install(DIRECTORY config/
-  DESTINATION share/${PROJECT_NAME}/config
-)
-
 ament_export_include_directories(include)
 ament_export_libraries(hardware_detector_lib image_preprocessor_lib)
 ament_export_dependencies(

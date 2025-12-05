@@ -12,6 +12,7 @@ find_package(xacro REQUIRED)
 find_package(robot_state_publisher REQUIRED)
 
 install(PROGRAMS
+  scripts/rack_waypoints.py
   scripts/odom_tf_publisher.py
   scripts/imu_covariance_fixer.py
   scripts/sensor_bridge.py

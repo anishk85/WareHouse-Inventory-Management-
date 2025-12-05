@@ -77,7 +77,7 @@ ros2 launch mecanum_gazebo simulation_world.launch.py
 ### 2. Navigation
 Launch the navigation stack (AMCL + Nav2):
 ```bash
-ros2 launch mecanum_navigation_setup cartographer_navigaation.launch.py
+ros2 launch mecanum_navigation_setup cartographer_navigation.launch.py
 ```
 *Or for SLAM (Mapping):*
 ```bash

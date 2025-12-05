@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "cmath": "cpp",
+        "complex": "cpp",
+        "functional": "cpp",
+        "chrono": "cpp",
+        "deque": "cpp",
+        "string": "cpp",
+        "vector": "cpp"
+    }
+}

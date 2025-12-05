@@ -67,46 +67,63 @@ void InventoryNode::startNewMission()
 
 void InventoryNode::qrCallback(const warehouse_rover_msgs::msg::QRDetectionArray::SharedPtr msg)
 {
-  if (msg->detections.empty()) {
-    return;
-  }
-  
+  if (msg->detections.empty()) return;
+
   for (const auto & detection : msg->detections) {
-    // Only store valid detections
+
+    std::string rack_to_store;
+    std::string shelf_to_store;
+    std::string item_to_store;
+
     if (!detection.is_valid) {
+      // INVALID QR → use hard-coded values
       RCLCPP_WARN(
         this->get_logger(),
-        "Skipping invalid QR: \"%s\" - %s",
+        "Invalid QR detected. Using hard-coded fallback values. raw=\"%s\" error=\"%s\"",
         detection.qr_data.c_str(),
         detection.error_message.c_str()
       );
-      continue;
+
+      rack_to_store  = "01";   // <-- your hard-coded rack
+      shelf_to_store = "01";   // <-- your hard-coded shelf
+      item_to_store  = "001";  // <-- your hard-coded item
     }
-    
-    // Store in database
+    else {
+      // VALID QR → use real detected values
+      rack_to_store  = detection.rack_id;
+      shelf_to_store = detection.shelf_id;
+      item_to_store  = detection.item_code;
+    }
+
+    // ORIGINAL 5-argument database function
     int id = db_->addDetection(
       current_mission_id_,
-      detection.rack_id,
-      detection.shelf_id,
-      detection.item_code,
+      rack_to_store,
+      shelf_to_store,
+      item_to_store,
       detection.confidence
     );
-    
+
     if (id > 0) {
       RCLCPP_INFO(
         this->get_logger(),
-        "✓ Stored [%s][%s] %s (ID: %d, conf: %.2f)",
-        detection.rack_id.c_str(),
-        detection.shelf_id.c_str(),
-        detection.item_code.c_str(),
+        "Stored QR (ID: %d) rack=\"%s\" shelf=\"%s\" item=\"%s\" valid=%d",
         id,
-        detection.confidence
+        rack_to_store.c_str(),
+        shelf_to_store.c_str(),
+        item_to_store.c_str(),
+        detection.is_valid
       );
-    } else {
+    }
+    else {
       RCLCPP_ERROR(this->get_logger(), "Failed to store detection");
     }
   }
 }
+
+
+
+
 
 }  // namespace warehouse_rover_database
 

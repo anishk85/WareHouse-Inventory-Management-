@@ -69,6 +69,21 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: Waypoints
+      Namespaces:
+        waypoints: true
+        waypoints_text: true
+      Queue Size: 100
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /mission_waypoints_markers
+      Value: true
       
     - Class: rviz_default_plugins/TF
       Enabled: true

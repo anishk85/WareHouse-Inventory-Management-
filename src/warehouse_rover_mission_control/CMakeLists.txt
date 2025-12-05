@@ -12,6 +12,7 @@ find_package(rclcpp_action REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 find_package(nav2_msgs REQUIRED)
 
 # Mission Controller
@@ -25,6 +26,7 @@ target_include_directories(mission_controller_node PUBLIC
 ament_target_dependencies(mission_controller_node
   rclcpp
   rclcpp_action
+  visualization_msgs
   std_msgs
   geometry_msgs
   trajectory_msgs

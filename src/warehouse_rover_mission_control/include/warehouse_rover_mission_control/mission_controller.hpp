@@ -7,7 +7,13 @@
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <std_msgs/msg/float64.hpp>
 #include <std_msgs/msg/string.hpp>
+#include <geometry_msgs/msg/twist.hpp>
 #include <trajectory_msgs/msg/joint_trajectory.hpp>
+
+// ADD THESE:
+#include <visualization_msgs/msg/marker.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
+
 #include <vector>
 #include <string>
 
@@ -53,6 +59,7 @@ private:
   void moveLiftToHeight(double height);
   void waitForQRDetection();
   void processNextShelf();
+  void startOscillation();
   
   // Nav2 callbacks
   void goalResponseCallback(const GoalHandleNav::SharedPtr & goal_handle);
@@ -64,6 +71,13 @@ private:
   // QR detection callback
   void qrDetectionCallback(const std_msgs::msg::String::SharedPtr msg);
   
+  //--------------------------------------------------------------------
+  // ADD THESE: Marker visualization method + publisher
+  //--------------------------------------------------------------------
+  void publishWaypointMarkers();
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
+  //--------------------------------------------------------------------
+
   // State machine
   MissionState state_;
   size_t current_rack_idx_;
@@ -74,7 +88,10 @@ private:
   rclcpp_action::Client<NavigateToPose>::SharedPtr nav_client_;
   rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr lift_pub_;
   rclcpp::Subscription<std_msgs::msg::String>::SharedPtr qr_sub_;
+  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
   rclcpp::TimerBase::SharedPtr mission_timer_;
+  rclcpp::TimerBase::SharedPtr marker_timer_;
+
   
   // Parameters
   double scan_dwell_time_;

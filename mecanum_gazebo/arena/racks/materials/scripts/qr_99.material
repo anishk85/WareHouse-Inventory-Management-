@@ -1,0 +1,14 @@
+material QR_99
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture 99.png
+        filtering trilinear
+      }
+    }
+  }
+}

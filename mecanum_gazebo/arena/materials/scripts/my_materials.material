@@ -1,0 +1,59 @@
+material MyQR/QR1
+{
+  technique
+  {
+    pass
+    {
+      ambient 1.0 1.0 1.0 1.0
+      diffuse 1.0 1.0 1.0 1.0
+      specular 0.0 0.0 0.0 1.0
+      emissive 0.0 0.0 0.0 1.0
+      
+      texture_unit
+      {
+        texture ../textures/qr1.png
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material MyQR/QR2
+{
+  technique
+  {
+    pass
+    {
+      ambient 1.0 1.0 1.0 1.0
+      diffuse 1.0 1.0 1.0 1.0
+      specular 0.0 0.0 0.0 1.0
+      emissive 0.0 0.0 0.0 1.0
+      
+      texture_unit
+      {
+        texture ../textures/qr2.png
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material MyQR/QR3
+{
+  technique
+  {
+    pass
+    {
+      ambient 1.0 1.0 1.0 1.0
+      diffuse 1.0 1.0 1.0 1.0
+      specular 0.0 0.0 0.0 1.0
+      emissive 0.0 0.0 0.0 1.0
+      
+      texture_unit
+      {
+        texture ../textures/qr3.png
+        filtering trilinear
+      }
+    }
+  }
+}

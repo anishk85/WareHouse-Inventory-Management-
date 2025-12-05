@@ -1,0 +1,8 @@
+lift_controller:
+  ros__parameters:
+    joint_name: "lift_joint"
+    trajectory_topic: "/lift_position_controller/joint_trajectory"
+    shelf_heights: [0.0, 1.00, 1.50, 2.00]
+    move_duration: 2.0
+    dwell_time: 3.0
+    use_sim_time: true

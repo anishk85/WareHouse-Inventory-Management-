@@ -6,6 +6,8 @@ from launch.actions import (
     IncludeLaunchDescription,
     TimerAction,
     LogInfo,
+    ExecuteProcess, 
+    
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
@@ -24,7 +26,37 @@ def generate_launch_description():
     nav2_params = os.path.join(nav_pkg, 'config', 'nav2_params.yaml')
     cartographer_config_dir = os.path.join(nav_pkg, 'config')
     rviz_config = os.path.join(nav_pkg, 'rviz', 'nav2.rviz')
-    map_yaml = os.path.join(nav_pkg, 'maps', 'maps.yaml') # ADDED: Path to static map file
+    map_yaml = os.path.join(nav_pkg, 'maps', 'my_maps.yaml')
+    
+    # ============================================================
+    # LAUNCH ARGUMENTS for INITIAL POSE in AMCL
+    # ============================================================
+    init_x = LaunchConfiguration('init_x')
+    init_y = LaunchConfiguration('init_y')
+    init_z = LaunchConfiguration('init_z', default='1.0')
+    init_w = LaunchConfiguration('init_w', default='0.0')
+    
+    declare_init_z_cmd = DeclareLaunchArgument(
+        'init_z', default_value='1.0', description='Initial Z orientation for AMCL'
+    )
+    declare_init_w_cmd = DeclareLaunchArgument(
+        'init_w', default_value='0.0', description='Initial W orientation for AMCL'
+    )   
+    
+    declare_init_x_cmd = DeclareLaunchArgument(
+        'init_x', default_value='0.8', description='Initial X position for AMCL'
+    )
+    declare_init_y_cmd = DeclareLaunchArgument(
+        'init_y', default_value='0.0', description='Initial Y position for AMCL'
+    )
+    
+    set_initial_pose_cmd = ExecuteProcess(
+        cmd=[
+            'ros2', 'topic', 'pub', '--once', '/initialpose', 'geometry_msgs/msg/PoseWithCovarianceStamped',
+            ['{header: {frame_id: "map"}, pose: {pose: {position: {x: ', init_x, ', y: ', init_y, ', z: 0.0}, orientation: {z: ', init_z, ', w: ', init_w, '}}, covariance: [0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1]}}']
+        ],
+        output='screen'
+    )
     
     # Launch Args
     use_sim_time = LaunchConfiguration('use_sim_time')
@@ -135,13 +167,18 @@ def generate_launch_description():
     ld = LaunchDescription()
     
     ld.add_action(declare_use_sim_time_cmd)
+    ld.add_action(declare_init_x_cmd)
+    ld.add_action(declare_init_y_cmd)
+    ld.add_action(declare_init_z_cmd)
+    ld.add_action(declare_init_w_cmd)
     
     ld.add_action(LogInfo(msg=" TF Chain: Map(AMCL)->Odom(Carto)->Base "))
-    ld.add_action(gazebo_launch)
+    # ld.add_action(gazebo_launch)
     
     # t=5s: Bridge
     
     ld.add_action(LogInfo(msg=" Gazebo launched. Starting cmd_vel bridge... "))
+
     
     ld.add_action(TimerAction(
         period=5.0,
@@ -170,5 +207,13 @@ def generate_launch_description():
     
     # t=20s: RViz
     ld.add_action(TimerAction(period=20.0, actions=[rviz_node]))
+    
+    ld.add_action(TimerAction(
+        period=22.0, 
+        actions=[
+            LogInfo(msg="Automatically setting initial pose..."),
+            set_initial_pose_cmd
+        ]
+    ))
     
     return ld

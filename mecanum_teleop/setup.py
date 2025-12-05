@@ -24,7 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'mecanum_teleop_key = mecanum_teleop.scripts.mecanum_teleop_key:main'
+            'mecanum_teleop_key = mecanum_teleop.mecanum_teleop_key:main'
         ],
     },
 )

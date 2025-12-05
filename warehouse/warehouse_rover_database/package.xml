@@ -11,8 +11,7 @@
   <depend>rclcpp</depend>
   <depend>warehouse_rover_msgs</depend>
   <depend>libsqlite3-dev</depend>
-  <depend>usb-cam</depend>
-  
+
   <export>
     <build_type>ament_cmake</build_type>
   </export>

@@ -99,6 +99,7 @@ def generate_launch_description():
     # 3. CARTOGRAPHER AS ODOMETRY SOURCE (t=8s)
     #    Publishes odom->base_link
     # ============================================================
+    
     cartographer_node = Node(
         package='cartographer_ros',
         executable='cartographer_node',

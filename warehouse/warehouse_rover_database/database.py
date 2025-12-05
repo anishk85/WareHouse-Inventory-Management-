@@ -312,4 +312,4 @@ if __name__ == '__main__':
     print(f"📂 Database: {DB_PATH}")
     print(f"🌐 Open browser: http://localhost:5000")
     print(f"⟳ Auto-refresh: Every 3 seconds\n")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=7000, debug=True)

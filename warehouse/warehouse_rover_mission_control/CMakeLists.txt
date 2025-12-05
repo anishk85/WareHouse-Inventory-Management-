@@ -12,8 +12,8 @@ find_package(rclcpp_action REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 find_package(nav2_msgs REQUIRED)
-find_package(visualization_msgs REQUIRED) # <--- ADDED THIS
 
 # Mission Controller
 add_executable(mission_controller_node src/mission_controller.cpp)
@@ -26,11 +26,11 @@ target_include_directories(mission_controller_node PUBLIC
 ament_target_dependencies(mission_controller_node
   rclcpp
   rclcpp_action
+  visualization_msgs
   std_msgs
   geometry_msgs
   trajectory_msgs
   nav2_msgs
-  visualization_msgs # <--- ADDED THIS
 )
 
 # Install
@@ -41,10 +41,17 @@ install(TARGETS
 
 install(DIRECTORY
   launch
+  config
   DESTINATION share/${PROJECT_NAME}
 )
 
 ament_package()
+
+# Install Python scripts
+install(PROGRAMS
+  scripts/measure_rack_positions.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 # Install Python scripts
 install(PROGRAMS

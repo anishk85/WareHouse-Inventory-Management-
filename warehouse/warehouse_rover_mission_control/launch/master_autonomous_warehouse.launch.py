@@ -1,6 +1,6 @@
 """
 MASTER LAUNCH: Complete Autonomous Warehouse Scanning System
-Combines: Gazebo → Navigation → QR Detection → Database → Lift Control → Mission Control
+Combines: Gazebo → Navigation → QR Detection → Database → Mission Control
 """
 import os
 from ament_index_python.packages import get_package_share_directory
@@ -18,10 +18,9 @@ from launch_ros.actions import Node
 def generate_launch_description():
 
     # Package directories
-    mecanum_pkg = get_package_share_directory('mecanum_gazebo')
-    navigation_pkg = get_package_share_directory('mecanum_navigation_setup')
+    mecanum_pkg = get_package_share_directory('mecanum_in_gazebo')
+    navigation_pkg = get_package_share_directory('navigation_setup')
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
-    lift_controller_pkg = get_package_share_directory('warehouse_rover_lift_control')
     
     # File paths
     nav2_params_file = os.path.join(navigation_pkg, 'config', 'nav2_params.yaml')
@@ -52,7 +51,7 @@ def generate_launch_description():
     # ════════════════════════════════════════════════════════════════
     
     odom_tf_publisher = Node(
-        package='mecanum_gazebo',
+        package='mecanum_in_gazebo',
         executable='odom_tf_publisher.py',
         name='odom_tf_publisher',
         parameters=[{'use_sim_time': use_sim_time}],
@@ -60,7 +59,7 @@ def generate_launch_description():
     )
     
     cmd_vel_converter = Node(
-        package='mecanum_gazebo',
+        package='mecanum_in_gazebo',
         executable='cmd_vel_to_mecanum.py',
         name='cmd_vel_to_mecanum',
         parameters=[{
@@ -83,20 +82,7 @@ def generate_launch_description():
         arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
         parameters=[{'use_sim_time': use_sim_time}]
     )
-
-
-    # # Add BEFORE nav2_bringup
-    # map_server_launch = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         os.path.join(nav2_bringup_dir, 'launch', 'localization_launch.py')
-    #     ),
-    #     launch_arguments={
-    #         'map': map_file,
-    #         'use_sim_time': 'True',
-    #         'use_lifecycle_mgr': 'false'  # Don't start AMCL
-    #     }.items()
-    # )
-        
+    
     # ════════════════════════════════════════════════════════════════
     # PHASE 4: NAVIGATION STACK (12s)
     # ════════════════════════════════════════════════════════════════
@@ -166,18 +152,7 @@ def generate_launch_description():
     )
     
     # ════════════════════════════════════════════════════════════════
-    # PHASE 6.5: LIFT CONTROLLER (14s)
-    # ════════════════════════════════════════════════════════════════
-    
-    lift_controller_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(lift_controller_pkg, 'launch', 'lift_controller.launch.py')
-        ),
-        launch_arguments={'use_sim_time': 'True'}.items()
-    )
-    
-    # ════════════════════════════════════════════════════════════════
-    # PHASE 7: MISSION CONTROLLER (25s - Wait for all services)
+    # PHASE 7: MISSION CONTROLLER (20s - Wait for Nav2 to be ready)
     # ════════════════════════════════════════════════════════════════
     
     mission_controller = Node(
@@ -215,9 +190,7 @@ def generate_launch_description():
         period=9.0,
         actions=[map_odom_tf]
     ))
-
-    # ld.add_action(TimerAction(period=12.0, actions=[map_server_launch]))
-
+    
     # Phase 4: Start Nav2 stack (12s)
     ld.add_action(TimerAction(
         period=12.0,
@@ -236,15 +209,9 @@ def generate_launch_description():
         actions=[qr_detector, inventory_db]
     ))
     
-    # Phase 6.5: Start lift controller (14s)
+    # Phase 7: Start mission controller (20s - after everything is ready)
     ld.add_action(TimerAction(
-        period=14.0,
-        actions=[lift_controller_launch]
-    ))
-    
-    # Phase 7: Start mission controller (25s - after all services ready)
-    ld.add_action(TimerAction(
-        period=25.0,
+        period=20.0,
         actions=[mission_controller]
     ))
     

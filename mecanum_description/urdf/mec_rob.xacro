@@ -1173,11 +1173,49 @@
 
 <xacro:lidar_gazebo name="lidar"/>
 
-<xacro:depth_camera_sensor parent="base_link" name="camera">
+
+
+<xacro:depth_camera_sensor parent="base_link" name="front_camera">
   <origin xyz="0.15 0 0.05" rpy="0 0 0"/>
 </xacro:depth_camera_sensor>
 
-<xacro:depth_camera_gazebo name="camera"/>
+<xacro:depth_camera_gazebo name="front_camera"/>
+
+<!-- <xacro:depth_camera_sensor parent="base_link" name="qr_camera">
+  <origin xyz="0.0 0 0.1" rpy="0 0 -1.5708"/>
+</xacro:depth_camera_sensor>
+
+<xacro:depth_camera_gazebo name="qr_camera"/> -->
+
+
+<xacro:property name="camera_travel" value="0.15" />  <xacro:property name="camera_offset" value="0.05" />  <xacro:property name="camera_speed" value="1.0" />    <joint name="qr_camera_prismatic_joint" type="prismatic">
+  <parent link="base_link"/>
+  <child link="qr_camera_mount_link"/>
+  <origin xyz="0.0 0 0.1" rpy="0 0 -1.5708"/> 
+  <axis xyz="0 0 1"/> <limit effort="100.0" velocity="${camera_speed}" lower="${camera_offset}" upper="${camera_offset + camera_travel}"/>
+</joint>
+
+<link name="qr_camera_mount_link">
+  </link>
+
+<xacro:depth_camera_sensor parent="qr_camera_mount_link" name="qr_camera">
+  <origin xyz="0.0 0 0.0" rpy="0 0 0"/> 
+</xacro:depth_camera_sensor>
+
+<xacro:depth_camera_gazebo name="qr_camera"/>
+
+<ros2_control name="camera_control_system" type="system">
+  <hardware>
+    <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+  </hardware>
+
+  <joint name="qr_camera_prismatic_joint">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+</ros2_control>
+
 
 <xacro:imu_sensor parent="base_link" name="imu">
   <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>

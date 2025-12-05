@@ -66,7 +66,7 @@ class GoalReceiver(Node):
         super().__init__('goal_receiver')
         self.subscription = self.create_subscription(
             PoseStamped,
-            '/goal_pose',
+            '/wiggle_nav_goal',
             self.goal_callback,
             10)
         self.current_goal = None
@@ -74,6 +74,7 @@ class GoalReceiver(Node):
 
     def goal_callback(self, msg):
         self.get_logger().info('Received new goal from RViz!')
+        print(f'moving to: x={msg.pose.position.x}, y={msg.pose.position.y} qz={msg.pose.orientation.z}, qw={msg.pose.orientation.w}')
         self.current_goal = msg
         self.new_goal_received = True
 
@@ -125,11 +126,11 @@ def main():
                     print('Goal reached! Starting "To and Fro" motion...')
                     
                     # --- 2. Execute To and Fro Motion ---
-                    # Move Forward 0.5m
-                    motion_node.move_straight(distance=0.5, speed=0.2)
+                    # Move Forward 1m
+                    motion_node.move_straight(distance=1, speed=0.2)
                     time.sleep(0.5)
-                    # Move Backward 0.5m
-                    motion_node.move_straight(distance=0.5, speed=-0.2)
+                    # Move Backward 1m
+                    motion_node.move_straight(distance=1, speed=-0.2)
                     
                     print("Motion sequence complete. Waiting for next goal...")
 

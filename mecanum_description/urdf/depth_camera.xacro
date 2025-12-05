@@ -9,7 +9,7 @@
 
   <xacro:macro name="depth_camera_sensor" params="parent *origin name:=camera">
     
-    <material name="realsense_aluminum">
+    <material name="${name}_realsense_aluminum">
       <color rgba="0.5 0.5 0.5 1.0"/>
     </material>
 
@@ -27,7 +27,7 @@
         <geometry>
           <box size="${realsense_cam_depth} ${realsense_cam_width} ${realsense_cam_height}"/>
         </geometry>
-        <material name="realsense_aluminum"/>
+        <material name="${name}_realsense_aluminum"/>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>

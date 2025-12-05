@@ -33,10 +33,13 @@
     );
     
     // Lift controller publisher
+
     lift_pub_ = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(
       "/lift_position_controller/joint_trajectory",
       10
     );
+
+
     marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
       "/mission_waypoints_markers", 10);
 
@@ -464,6 +467,8 @@
   int main(int argc, char ** argv)
   {
     rclcpp::init(argc, argv);
+
+    
     
     auto node = std::make_shared<warehouse_rover_mission_control::MissionController>(
       rclcpp::NodeOptions()

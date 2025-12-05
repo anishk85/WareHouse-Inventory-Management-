@@ -8,7 +8,10 @@ from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
     IncludeLaunchDescription,
-    TimerAction
+    TimerAction,
+    LogInfo,
+    ExecuteProcess, 
+    
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
@@ -18,14 +21,46 @@ from launch_ros.actions import Node
 def generate_launch_description():
 
     # Package directories
-    mecanum_pkg = get_package_share_directory('mecanum_in_gazebo')
-    navigation_pkg = get_package_share_directory('navigation_setup')
-    nav2_bringup_dir = get_package_share_directory('nav2_bringup')
+    mecanum_pkg = get_package_share_directory('mecanum_gazebo')
+    navigation_pkg = get_package_share_directory('mecanum_navigation_setup')
+    nav_pkg = get_package_share_directory('mecanum_navigation_setup')
+    nav2_bringup_pkg = get_package_share_directory('nav2_bringup')
     
-    # File paths
-    nav2_params_file = os.path.join(navigation_pkg, 'config', 'nav2_params.yaml')
-    rviz_config_file = os.path.join(navigation_pkg, 'rviz', 'nav2.rviz')
-    map_file = os.path.join(navigation_pkg, 'maps', 'map.yaml')
+    
+    cartographer_config_dir = os.path.join(nav_pkg, 'config')
+    
+    nav2_params = os.path.join(nav_pkg, 'config', 'nav2_params.yaml')
+    cartographer_config_dir = os.path.join(nav_pkg, 'config')
+    rviz_config = os.path.join(nav_pkg, 'rviz', 'nav2.rviz')
+    map_yaml = os.path.join(nav_pkg, 'maps', 'my_maps.yaml')
+    
+    init_x = LaunchConfiguration('init_x')
+    init_y = LaunchConfiguration('init_y')
+    init_z = LaunchConfiguration('init_z', default='1.0')
+    init_w = LaunchConfiguration('init_w', default='0.0')
+    
+    declare_init_z_cmd = DeclareLaunchArgument(
+        'init_z', default_value='1.0', description='Initial Z orientation for AMCL'
+    )
+    declare_init_w_cmd = DeclareLaunchArgument(
+        'init_w', default_value='0.0', description='Initial W orientation for AMCL'
+    )   
+    
+    declare_init_x_cmd = DeclareLaunchArgument(
+        'init_x', default_value='0.8', description='Initial X position for AMCL'
+    )
+    declare_init_y_cmd = DeclareLaunchArgument(
+        'init_y', default_value='0.0', description='Initial Y position for AMCL'
+    )
+    
+    set_initial_pose_cmd = ExecuteProcess(
+        cmd=[
+            'ros2', 'topic', 'pub', '--once', '/initialpose', 'geometry_msgs/msg/PoseWithCovarianceStamped',
+            ['{header: {frame_id: "map"}, pose: {pose: {position: {x: ', init_x, ', y: ', init_y, ', z: 0.0}, orientation: {z: ', init_z, ', w: ', init_w, '}}, covariance: [0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1]}}']
+        ],
+        output='screen'
+    )
+    
     
     # Launch arguments
     use_sim_time = LaunchConfiguration('use_sim_time')
@@ -36,83 +71,97 @@ def generate_launch_description():
         description='Use simulation clock'
     )
     
-    # ════════════════════════════════════════════════════════════════
-    # PHASE 1: SIMULATION & ROBOT (0s)
-    # ════════════════════════════════════════════════════════════════
-    
+    # ============================================================
+    # 1. GAZEBO + ROBOT (t=0s)
+    # ============================================================
     gazebo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(mecanum_pkg, 'launch', 'gazebo.launch.py')
-        )
+            os.path.join(mecanum_pkg, 'launch', 'simulation_world.launch.py')
+        ),
+        launch_arguments={'use_sim_time': use_sim_time}.items()
     )
     
-    # ════════════════════════════════════════════════════════════════
-    # PHASE 2: ODOMETRY & MOTOR CONTROL (8s)
-    # ════════════════════════════════════════════════════════════════
-    
-    odom_tf_publisher = Node(
-        package='mecanum_in_gazebo',
-        executable='odom_tf_publisher.py',
-        name='odom_tf_publisher',
+    # ============================================================
+    # 2. CMD_VEL BRIDGE (t=5s)
+    # ============================================================
+    cmd_vel_bridge = Node(
+        package='mecanum_description',
+        executable='cmd_vel_bridge.py',
+        name='cmd_vel_bridge',
+        output='screen',
         parameters=[{'use_sim_time': use_sim_time}],
-        output='screen'
+        remappings=[
+            ('cmd_vel', '/cmd_vel'),
+            ('cmd_vel_out', '/mecanum_drive_controller/reference')
+        ]
     )
     
-    cmd_vel_converter = Node(
-        package='mecanum_in_gazebo',
-        executable='cmd_vel_to_mecanum.py',
-        name='cmd_vel_to_mecanum',
-        parameters=[{
-            'use_sim_time': use_sim_time,
-            'wheel_separation_x': 0.3,
-            'wheel_separation_y': 0.25,
-            'wheel_radius': 0.05
-        }],
-        output='screen'
+    # ============================================================
+    # 3. CARTOGRAPHER AS ODOMETRY SOURCE (t=8s)
+    #    Publishes odom->base_link
+    # ============================================================
+    
+    cartographer_node = Node(
+        package='cartographer_ros',
+        executable='cartographer_node',
+        name='cartographer_node',
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}],
+        arguments=[
+            '-configuration_directory', cartographer_config_dir,
+            '-configuration_basename', 'cartographer_odom.lua', 
+        ],
+        remappings=[
+            ('scan', '/scan'),
+            ('odom', '/mecanum_drive_controller/odometry'), 
+            ('imu', '/imu/data')
+        ]
     )
     
-    # ════════════════════════════════════════════════════════════════
-    # PHASE 3: LOCALIZATION (9s)
-    # ════════════════════════════════════════════════════════════════
-    
-    map_odom_tf = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='map_odom_publisher',
-        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
-        parameters=[{'use_sim_time': use_sim_time}]
-    )
-    
-    # ════════════════════════════════════════════════════════════════
-    # PHASE 4: NAVIGATION STACK (12s)
-    # ════════════════════════════════════════════════════════════════
-    
-    nav2_bringup = IncludeLaunchDescription(
+    # ============================================================
+    # 4. NAV2 LOCALIZATION (AMCL + MAP SERVER) (t=15s)
+    #    Publishes map->odom
+    # ============================================================
+    nav2_localization = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(nav2_bringup_dir, 'launch', 'bringup_launch.py')
+            os.path.join(nav2_bringup_pkg, 'launch', 'localization_launch.py')
         ),
         launch_arguments={
-            'use_sim_time': 'True',
-            'autostart': 'true',
-            'params_file': nav2_params_file,
-            'map': map_file,
-            'use_respawn': 'False'
+            'use_sim_time': use_sim_time,
+            'params_file': nav2_params,
+            'map': map_yaml, # Supply the static map
+            'autostart': 'true'
         }.items()
     )
     
-    # ════════════════════════════════════════════════════════════════
-    # PHASE 5: VISUALIZATION (15s)
-    # ════════════════════════════════════════════════════════════════
+    # ============================================================
+    # 5. NAV2 NAVIGATION (PLANNERS + CONTROLLERS) (t=18s)
+    # ============================================================
     
+    nav2_navigation = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(nav2_bringup_pkg, 'launch', 'navigation_launch.py')
+        ),
+        launch_arguments={
+            'use_sim_time': use_sim_time,
+            'params_file': nav2_params,
+            'autostart': 'true',
+            'use_map_server': 'false',  # AMCL is loading the map already
+            'use_amcl': 'false',        # AMCL is launched separately
+        }.items()
+    )
+
+    # ============================================================
+    # 6. RVIZ (t=20s)
+    # ============================================================
     rviz_node = Node(
         package='rviz2',
         executable='rviz2',
         name='rviz2',
-        arguments=['-d', rviz_config_file],
+        arguments=['-d', rviz_config],
         parameters=[{'use_sim_time': use_sim_time}],
         output='screen'
     )
-    
     # ════════════════════════════════════════════════════════════════
     # PHASE 6: PERCEPTION & DATABASE (16s)
     # ════════════════════════════════════════════════════════════════
@@ -167,51 +216,70 @@ def generate_launch_description():
         output='screen'
     )
     
-    # ════════════════════════════════════════════════════════════════
-    # BUILD LAUNCH DESCRIPTION WITH TIMED STARTUP
-    # ════════════════════════════════════════════════════════════════
-    
+    # ============================================================
+    # LAUNCH SEQUENCE
+    # ============================================================
     ld = LaunchDescription()
     
-    # Arguments
     ld.add_action(declare_use_sim_time_cmd)
+    ld.add_action(declare_init_x_cmd)
+    ld.add_action(declare_init_y_cmd)
+    ld.add_action(declare_init_z_cmd)
+    ld.add_action(declare_init_w_cmd)
     
-    # Phase 1: Start Gazebo immediately
+    ld.add_action(LogInfo(msg=" TF Chain: Map(AMCL)->Odom(Carto)->Base "))
     ld.add_action(gazebo_launch)
     
-    # Phase 2: Start odometry + motor control (8s)
+    # t=5s: Bridge
+    
+    ld.add_action(LogInfo(msg=" Gazebo launched. Starting cmd_vel bridge... "))
+
+    
+    ld.add_action(TimerAction(
+        period=5.0,
+        actions=[cmd_vel_bridge]
+    ))
+    
+    ld.add_action(LogInfo(msg=" Cmd_vel bridge started. Starting Cartographer... "))
+    
+    # t=8s: Cartographer (Odom->base_link)
     ld.add_action(TimerAction(
         period=8.0,
-        actions=[odom_tf_publisher, cmd_vel_converter]
+        actions=[cartographer_node]
     ))
     
-    # Phase 3: Start localization TF (9s)
-    ld.add_action(TimerAction(
-        period=9.0,
-        actions=[map_odom_tf]
-    ))
+    ld.add_action(LogInfo(msg=" Cartographer started. Starting Nav2 Localization... "))
     
-    # Phase 4: Start Nav2 stack (12s)
-    ld.add_action(TimerAction(
-        period=12.0,
-        actions=[nav2_bringup]
-    ))
+    # t=15s: Nav2 Localization (AMCL/MapServer)
+    ld.add_action(TimerAction(period=15.0, actions=[nav2_localization]))
     
-    # Phase 5: Start RViz (15s)
+    ld.add_action(LogInfo(msg=" Nav2 Localization started. Starting Nav2 Navigation... "))
+    
+    # t=18s: Nav2 Navigation (Planners/Controllers)
+    ld.add_action(TimerAction(period=18.0, actions=[nav2_navigation]))
+    
+    ld.add_action(LogInfo(msg=" Nav2 Navigation started. Launching RViz... "))
+    
+    # t=20s: RViz
+    ld.add_action(TimerAction(period=20.0, actions=[rviz_node]))
+    
     ld.add_action(TimerAction(
-        period=15.0,
-        actions=[rviz_node]
+        period=22.0, 
+        actions=[
+            LogInfo(msg="Automatically setting initial pose..."),
+            set_initial_pose_cmd
+        ]
     ))
     
     # Phase 6: Start perception + database (16s)
     ld.add_action(TimerAction(
-        period=16.0,
+        period=25.0,
         actions=[qr_detector, inventory_db]
     ))
     
     # Phase 7: Start mission controller (20s - after everything is ready)
     ld.add_action(TimerAction(
-        period=20.0,
+        period=27.0,
         actions=[mission_controller]
     ))
     

@@ -46,9 +46,6 @@ install(DIRECTORY launch/
 )
 
 # Install config files (if any)
-install(DIRECTORY config/
-  DESTINATION share/${PROJECT_NAME}/config
-)
 
 ament_export_include_directories(include)
 ament_export_libraries(database_manager_lib)

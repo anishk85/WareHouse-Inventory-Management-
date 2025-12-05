@@ -41,7 +41,6 @@ install(TARGETS
 
 install(DIRECTORY
   launch
-  config
   DESTINATION share/${PROJECT_NAME}
 )
 
@@ -58,5 +57,6 @@ install(PROGRAMS
   scripts/lift_service_node.py
   scripts/measure_rack_positions.py
   scripts/auto_initialize_amcl.py
+  scripts/mission_controller.py
   DESTINATION lib/${PROJECT_NAME}
 )

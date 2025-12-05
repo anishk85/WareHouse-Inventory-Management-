@@ -3,6 +3,7 @@
 build/
 install/
 log/
+.vscode
 
 # Colcon's metadata directory
 .colcon-metadata/

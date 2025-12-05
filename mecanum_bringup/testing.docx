@@ -1,0 +1,131 @@
+Upload to ESP32 boards
+
+# Open the firmware
+# mecanum_hardware/firmware/esp32_stepper_controller/esp32_stepper_controller.ino
+
+# For ESP1 (Front motors): Change line in code:
+#   Serial.println("ESP_ID: 1");
+
+# For ESP2 (Back motors): Change line in code:
+#   Serial.println("ESP_ID: 2");
+
+# Upload to both ESP32s via USB
+
+
+B. Identify USB Ports
+
+
+# Connect ESP1 and check port
+ls -l /dev/ttyUSB*
+
+# Connect ESP2 and check port again
+ls -l /dev/ttyUSB*
+
+# Give permissions
+sudo chmod 666 /dev/ttyUSB0
+sudo chmod 666 /dev/ttyUSB1
+
+# Make permanent (add your user to dialout group)
+sudo usermod -a -G dialout $USER
+# Then logout and login again
+
+mecanum_hardware/scripts/test_esp_connection.py
+
+Launch Real Robot
+
+# Terminal 1: Launch hardware interface
+ros2 launch mecanum_hardware real_robot.launch.py \
+  esp1_port:=/dev/ttyUSB0 \
+  esp2_port:=/dev/ttyUSB1 \
+  use_sensor_fusion:=true
+
+# Terminal 2: Check topics
+ros2 topic list
+ros2 topic echo /joint_states
+ros2 topic echo /odom
+
+# Terminal 3: Test teleop
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/mecanum_drive_controller/cmd_vel_unstamped
+
+# Or use your custom teleop
+ros2 run mecanum_gazebo mecanum_teleop_key.py
+
+Deployment to RPi 5
+
+B. RPi System Setup
+
+
+# On RPi 5
+
+# Install ROS2 Humble
+sudo apt update
+sudo apt install ros-humble-desktop
+
+# Install dependencies
+sudo apt install \
+  ros-humble-robot-localization \
+  ros-humble-nav2-bringup \
+  ros-humble-navigation2 \
+  ros-humble-rplidar-ros \
+  ros-humble-realsense2-camera \
+  ros-humble-imu-tools \
+  ros-humble-tf2-tools \
+  ros-humble-controller-manager \
+  ros-humble-ros2-control \
+  ros-humble-ros2-controllers
+
+# Give USB permissions
+sudo usermod -a -G dialout $USER
+sudo usermod -a -G video $USER
+
+# Logout and login
+
+
+# SSH into RPi
+ssh ubuntu@192.168.1.100
+
+# Source workspace
+source ~/ros2_ws/install/setup.bash
+
+# Launch navigation
+ros2 launch mecanum_hardware real_robot_navigation.launch.py \
+  esp1_port:=/dev/ttyUSB0 \
+  esp2_port:=/dev/ttyUSB1
+
+
+Remote RViz (from your laptop)
+
+# On your laptop
+export ROS_DOMAIN_ID=0
+export ROS_MASTER_URI=http://192.168.1.100:11311  # RPi IP
+
+# Launch only RViz
+ros2 launch mecanum_navigation_setup rviz_remote.launch.py
+
+ Troubleshooting Checklist
+
+
+ # 1. Check ESP connections
+ros2 topic echo /diagnostics
+
+# 2. Check joint states
+ros2 topic echo /joint_states --once
+
+# 3. Check odometry
+ros2 topic echo /odom
+
+# 4. Check IMU
+ros2 topic echo /imu/data
+
+# 5. Check transforms
+ros2 run tf2_tools view_frames
+
+# 6. Check controller status
+ros2 control list_controllers
+
+# 7. Monitor hardware interface
+ros2 control list_hardware_interfaces
+
+# 8. Test motor individually
+ros2 topic pub /mecanum_drive_controller/cmd_vel_unstamped geometry_msgs/msg/Twist \
+  "{linear: {x: 0.1, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"

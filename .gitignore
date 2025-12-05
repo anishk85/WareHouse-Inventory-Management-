@@ -1,0 +1,58 @@
+### Build and Environment Artifacts (ROS 2 / Colcon)
+# Colcon build/install directories
+build/
+install/
+log/
+
+# Colcon's metadata directory
+.colcon-metadata/
+
+# Colcon's symlink-install markers
+*.metainfo
+*.sh
+*.bat
+
+# Python virtual environment directories
+venv/
+.venv/
+
+# Environment setup files created by ROS/Colcon (e.g., from sourcing install)
+# (Though they are often in 'install', they might appear elsewhere)
+_package_setup.py
+
+---
+### General C/C++ Development
+# Object files, static and shared libraries
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Compiled Python files
+*.pyc
+__pycache__/
+
+---
+### Common Editor and OS Files
+# VS Code
+.vscode/
+
+# Vim/NeoVim swap and backup files
+*~
+*.swp
+*.bak
+*.swo
+
+# macOS files
+.DS_Store
+.Spotlight-V100
+.Trashes
+
+# Windows Thumbs.db
+Thumbs.db

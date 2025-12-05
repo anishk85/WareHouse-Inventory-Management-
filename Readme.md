@@ -58,7 +58,7 @@ The workspace is organized into core robot packages and warehouse-specific appli
 
 3.  **Build the workspace:**
     ```bash
-    colcon build --symlink-install
+    colcon build
     ```
 
 4.  **Source the setup script:**
@@ -77,11 +77,11 @@ ros2 launch mecanum_gazebo simulation_world.launch.py
 ### 2. Navigation
 Launch the navigation stack (AMCL + Nav2):
 ```bash
-ros2 launch mecanum_navigation_setup amcl_navigation.launch.py
+ros2 launch mecanum_navigation_setup cartographer_navigaation.launch.py
 ```
 *Or for SLAM (Mapping):*
 ```bash
-ros2 launch mecanum_navigation_setup cartographer_navigation.launch.py
+ros2 launch mecanum_navigation_setup cartographer.launch.py
 ```
 
 ### 3. Warehouse Mission

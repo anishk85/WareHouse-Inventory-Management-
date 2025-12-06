@@ -1221,7 +1221,7 @@
   </joint>
 </ros2_control> -->
 
-
+<!-- 
 
 <xacro:lift 
     parent="base_link"
@@ -1233,7 +1233,7 @@
   <origin xyz="0 0 0.10" rpy="0 0 0"/>
 </xacro:lift_camera_sensor>
 
-<xacro:lift_camera_gazebo name="lift_camera"/>
+<xacro:lift_camera_gazebo name="lift_camera"/> -->
 
 
 

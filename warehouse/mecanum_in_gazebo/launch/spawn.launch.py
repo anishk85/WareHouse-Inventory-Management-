@@ -18,22 +18,19 @@ from ament_index_python.packages import get_package_share_directory
 
 
 
-
 def generate_launch_description():
-    # pkg_share = get_package_share_directory("mecanum_gazebo")
-    pkg_mecanum = get_package_share_directory("mecanum_gazebo")
-    control_pkg = get_package_share_directory("mecanum_description")
+    # pkg_share = get_package_share_directory("mecanum_in_gazebo")
+    pkg_mecanum = get_package_share_directory("mecanum_in_gazebo")
 
     # Define file paths
     # urdf_file = os.path.join(pkg_share, "urdf", "mec_rob.xacro")
     # Note: Controller config is removed as we are not loading controllers
 
     # --- Launch Arguments ---
-    use_sim_time = LaunchConfiguration("use_sim_time")
+    # use_sim_time = LaunchConfiguration("use_sim_time")
     x_pose = LaunchConfiguration("x_pose")
     y_pose = LaunchConfiguration("y_pose")
     z_pose = LaunchConfiguration("z_pose")
-    yaw_pose = LaunchConfiguration('yaw_pose', default='3.14159')
 
     declare_use_sim_time_cmd = DeclareLaunchArgument(
         "use_sim_time",
@@ -92,8 +89,6 @@ def generate_launch_description():
             y_pose,
             "-z",
             z_pose,
-            "-Y", # rotated to face forward
-            yaw_pose,  # Face forward
             "-timeout",
             "60.0",
         ],
@@ -123,7 +118,7 @@ def generate_launch_description():
         ],
         output="screen",
     )
-    control_params_file = os.path.join(control_pkg, "config", "controllers.yaml")
+    control_params_file = os.path.join(pkg_mecanum, "config", "controller.yaml")
     # load_mecanum_controller_cmd = Node(
     #     package="controller_manager",
     #     executable="spawner",
@@ -147,76 +142,15 @@ def generate_launch_description():
         output="screen",
     )
     
-    load_lift_controller_cmd = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['lift_position_controller', '--controller-manager', '/controller_manager'],
-        output='screen'
-    )
-    
     ld.add_action(TimerAction(period=5.0, actions=[load_joint_broadcaster_cmd]))
-    
-    # ld.add_action(
-    #     RegisterEventHandler(
-    #         OnProcessExit(
-    #             target_action=load_joint_broadcaster_cmd,
-    #             on_exit=[load_mecanum_controller_cmd],
-    #         )
-    #     )
-    # )
-    
-    ld.add_action(TimerAction(period=8.0, actions=[load_mecanum_controller_cmd]))
-    
-    ld.add_action(TimerAction(period=10.0, actions=[load_lift_controller_cmd]))
-    
-    
-    
-    # ld.add_action(
-    #     RegisterEventHandler(
-    #         OnProcessExit(
-    #             target_action=load_mecanum_controller_cmd,
-    #             on_exit=[load_qr_camera_controller_cmd],
-    #         )
-    #     )
-    # )
-    
-     # CMD_VEL Bridge - converts /cmd_vel to /mecanum_drive_controller/reference
-    cmd_vel_bridge_node = Node(
-        package='mecanum_description',
-        executable='cmd_vel_bridge.py',
-        name='cmd_vel_bridge',
-        output='screen',
-        parameters=[{'use_sim_time': use_sim_time}]
+    ld.add_action(
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=load_joint_broadcaster_cmd,
+                on_exit=[load_mecanum_controller_cmd],
+            )
+        )
     )
-    
-    # TF Odometry Relay - publishes odom->base_link TF to /tf
-    # tf_odometry_relay_node = Node(
-    #     package='mecanum_gazebo',
-    #     executable='topic_bridge.py',
-    #     name='tf_odometry_relay',
-    #     output='screen',
-    #     parameters=[{'use_sim_time': use_sim_time}]
-    # )
-    
-    # SENSOR Bridge - publishes mecanum odometry to /odom and fixes IMU covariances
-    sensor_bridge_node = Node(
-        package='mecanum_description',
-        executable='sensor_bridge.py',
-        name='sensor_bridge',
-        output='screen',
-        parameters=[{'use_sim_time': use_sim_time}]
-    )
-    # ld.add_action(cmd_vel_bridge_node)
-    # ld.add_action(sensor_bridge_node)
-    
-    ld.add_action(TimerAction(period=12.0, actions=[cmd_vel_bridge_node]))
-    
-    # Start TF relay to publish odom->base_link transform to /tf
-    # ld.add_action(TimerAction(period=10.0, actions=[tf_odometry_relay_node]))
-    
-    # Start sensor bridge to publish odometry to /odom
-    ld.add_action(TimerAction(period=15.0, actions=[sensor_bridge_node]))
-    
 
     # All controller and timer-related actions have been removed
 

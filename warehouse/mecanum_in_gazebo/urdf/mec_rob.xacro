@@ -1,20 +1,6 @@
 <?xml version="1.0" ?>
 <robot name="mec_rob" xmlns:xacro="http://www.ros.org/wiki/xacro">
-<!-- <xacro:include filename="$(find mecanum_description)/urdf/mec_rob.ros2_control.xacro"/> -->
-
-<xacro:arg name="use_sim" default="true"/>
-
-
-<xacro:if value="$(arg use_sim)">
-
-  <xacro:include filename="$(find mecanum_description)/urdf/mec_rob.ros2_control.xacro"/>
-</xacro:if>
-
-<xacro:unless value="$(arg use_sim)">
- 
-  <xacro:include filename="$(find mecanum_description)/urdf/mec_rob.ros2_control.hardware.xacro"/>
-</xacro:unless>
-
+<xacro:include filename="$(find mecanum_in_gazebo)/urdf/mec_rob.ros2_control.xacro"/>
 <xacro:include filename="lidar.xacro" />
 <xacro:include filename="lidar.gazebo" />
 <xacro:include filename="depth_camera.xacro" />
@@ -23,10 +9,11 @@
 <xacro:include filename="mec_rob.trans" />
 <xacro:include filename="mec_rob.gazebo" />
 <xacro:include filename="imu.gazebo" />
-<xacro:include filename="imu.xacro" />
+<xacro:include filename="imu.urdf.xacro" />
 <xacro:include filename="lift.xacro" />
 <xacro:include filename="lift_camera.xacro" />
 <xacro:include filename="lift_camera.gazebo" />
+
 
 
 <link name="base_link">
@@ -38,17 +25,18 @@
   <visual>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
+
 
 <link name="wheel_frame_FL_1">
   <inertial>
@@ -59,14 +47,14 @@
   <visual>
     <origin xyz="-0.125 -0.15 -0.0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/wheel_frame_FL_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/wheel_frame_FL_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.125 -0.15 -0.0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/wheel_frame_FL_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/wheel_frame_FL_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -80,14 +68,14 @@
   <visual>
     <origin xyz="-0.142316 -0.142881 -0.04" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_14_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_14_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.142316 -0.142881 -0.04" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_14_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_14_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -101,14 +89,14 @@
   <visual>
     <origin xyz="-0.163976 -0.142881 -0.019512" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_16_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_16_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.163976 -0.142881 -0.019512" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_16_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_16_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -122,14 +110,14 @@
   <visual>
     <origin xyz="-0.167394 -0.142914 0.010075" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_13_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_13_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.167394 -0.142914 0.010075" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_13_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_13_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -143,14 +131,14 @@
   <visual>
     <origin xyz="-0.150999 -0.142914 0.034968" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_12_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_12_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.150999 -0.142914 0.034968" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_12_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_12_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -164,14 +152,14 @@
   <visual>
     <origin xyz="-0.12244 -0.142914 0.043499" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_15_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_15_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.12244 -0.142914 0.043499" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_15_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_15_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -185,14 +173,14 @@
   <visual>
     <origin xyz="-0.095078 -0.142914 0.031676" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_17_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_17_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.095078 -0.142914 0.031676" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_17_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_17_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -206,14 +194,14 @@
   <visual>
     <origin xyz="-0.081717 -0.142914 0.005032" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_18_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_18_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.081717 -0.142914 0.005032" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_18_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_18_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -227,14 +215,14 @@
   <visual>
     <origin xyz="-0.088609 -0.142914 -0.023967" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_10_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_10_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.088609 -0.142914 -0.023967" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_10_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_10_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -248,14 +236,14 @@
   <visual>
     <origin xyz="-0.112528 -0.142914 -0.041751" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_11_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_11_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.112528 -0.142914 -0.041751" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_11_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_11_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -269,14 +257,14 @@
   <visual>
     <origin xyz="-0.125 0.15 -0.0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/wheel_frame_FR_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/wheel_frame_FR_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.125 0.15 -0.0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/wheel_frame_FR_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/wheel_frame_FR_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -290,14 +278,14 @@
   <visual>
     <origin xyz="-0.107684 0.109619 -0.04" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_7_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_7_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.107684 0.109619 -0.04" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_7_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_7_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -311,14 +299,14 @@
   <visual>
     <origin xyz="-0.137447 0.109619 -0.041772" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_5_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_5_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.137447 0.109619 -0.041772" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_5_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_5_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -332,14 +320,14 @@
   <visual>
     <origin xyz="-0.161385 0.109619 -0.023998" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_3_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_3_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.161385 0.109619 -0.023998" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_3_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_3_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -353,14 +341,14 @@
   <visual>
     <origin xyz="-0.168299 0.109619 0.005004" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_6_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_6_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.168299 0.109619 0.005004" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_6_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_6_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -374,14 +362,14 @@
   <visual>
     <origin xyz="-0.154952 0.109619 0.031665" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_8_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_8_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.154952 0.109619 0.031665" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_8_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_8_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -395,14 +383,14 @@
   <visual>
     <origin xyz="-0.127591 0.109619 0.04351" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_9_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_9_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.127591 0.109619 0.04351" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_9_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_9_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -416,14 +404,14 @@
   <visual>
     <origin xyz="-0.099017 0.109619 0.034996" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_4_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_4_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.099017 0.109619 0.034996" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_4_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_4_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -437,14 +425,14 @@
   <visual>
     <origin xyz="-0.082601 0.109619 0.010107" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_1_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_1_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.082601 0.109619 0.010107" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_1_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_1_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -458,14 +446,14 @@
   <visual>
     <origin xyz="-0.086024 0.109619 -0.019512" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_2_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_2_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.086024 0.109619 -0.019512" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_2_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_2_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -479,14 +467,14 @@
   <visual>
     <origin xyz="0.125 -0.15 -0.0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/wheel_frame_BL_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/wheel_frame_BL_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.125 -0.15 -0.0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/wheel_frame_BL_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/wheel_frame_BL_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -500,14 +488,14 @@
   <visual>
     <origin xyz="0.142316 -0.142881 -0.04" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_23_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_23_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.142316 -0.142881 -0.04" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_23_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_23_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -521,14 +509,14 @@
   <visual>
     <origin xyz="0.112553 -0.142881 -0.041772" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_22_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_22_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.112553 -0.142881 -0.041772" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_22_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_22_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -542,14 +530,14 @@
   <visual>
     <origin xyz="0.088615 -0.142881 -0.023998" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_25_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_25_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.088615 -0.142881 -0.023998" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_25_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_25_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -563,14 +551,14 @@
   <visual>
     <origin xyz="0.081701 -0.142881 0.005004" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_21_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_21_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.081701 -0.142881 0.005004" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_21_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_21_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -584,14 +572,14 @@
   <visual>
     <origin xyz="0.095048 -0.142881 0.031665" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_26_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_26_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.095048 -0.142881 0.031665" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_26_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_26_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -605,14 +593,14 @@
   <visual>
     <origin xyz="0.122409 -0.142881 0.04351" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_27_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_27_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.122409 -0.142881 0.04351" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_27_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_27_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -626,14 +614,14 @@
   <visual>
     <origin xyz="0.150983 -0.142881 0.034996" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_20_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_20_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.150983 -0.142881 0.034996" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_20_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_20_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -647,14 +635,14 @@
   <visual>
     <origin xyz="0.167399 -0.142881 0.010107" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_19_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_19_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.167399 -0.142881 0.010107" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_19_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_19_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -668,14 +656,14 @@
   <visual>
     <origin xyz="0.163976 -0.142881 -0.019512" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_24_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_24_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.163976 -0.142881 -0.019512" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_24_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_24_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -689,14 +677,14 @@
   <visual>
     <origin xyz="0.125 0.15 -0.0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/wheel_frame_BR_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/wheel_frame_BR_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.125 0.15 -0.0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/wheel_frame_BR_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/wheel_frame_BR_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -710,14 +698,14 @@
   <visual>
     <origin xyz="0.107684 0.109619 -0.04" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_34_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_34_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.107684 0.109619 -0.04" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_34_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_34_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -731,14 +719,14 @@
   <visual>
     <origin xyz="0.086024 0.109619 -0.019512" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_30_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_30_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.086024 0.109619 -0.019512" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_30_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_30_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -752,14 +740,14 @@
   <visual>
     <origin xyz="0.082601 0.109619 0.010107" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_32_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_32_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.082601 0.109619 0.010107" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_32_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_32_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -773,14 +761,14 @@
   <visual>
     <origin xyz="0.099017 0.109619 0.034996" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_31_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_31_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.099017 0.109619 0.034996" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_31_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_31_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -794,14 +782,14 @@
   <visual>
     <origin xyz="0.127591 0.109619 0.04351" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_29_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_29_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.127591 0.109619 0.04351" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_29_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_29_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -815,14 +803,14 @@
   <visual>
     <origin xyz="0.137447 0.109619 -0.041772" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_28_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_28_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.137447 0.109619 -0.041772" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_28_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_28_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -836,14 +824,14 @@
   <visual>
     <origin xyz="0.154952 0.109619 0.031665" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_35_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_35_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.154952 0.109619 0.031665" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_35_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_35_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -857,14 +845,14 @@
   <visual>
     <origin xyz="0.168299 0.109619 0.005004" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_36_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_36_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.168299 0.109619 0.005004" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_36_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_36_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -878,14 +866,14 @@
   <visual>
     <origin xyz="0.161391 0.109586 -0.023967" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_33_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_33_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0.161391 0.109586 -0.023967" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="file://$(find mecanum_description)/meshes/roller_33_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="file://$(find mecanum_in_gazebo)/meshes/roller_33_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -1176,63 +1164,17 @@
 
 <xacro:lidar_gazebo name="lidar"/>
 
-
-
-<xacro:depth_camera_sensor parent="base_link" name="front_camera">
+<xacro:depth_camera_sensor parent="base_link" name="camera">
   <origin xyz="0.15 0 0.05" rpy="0 0 0"/>
 </xacro:depth_camera_sensor>
 
-<xacro:depth_camera_gazebo name="front_camera"/>
-
-<!-- <xacro:depth_camera_sensor parent="base_link" name="qr_camera">
-  <origin xyz="0.0 0 0.1" rpy="0 0 -1.5708"/>
-</xacro:depth_camera_sensor>
-
-<xacro:depth_camera_gazebo name="qr_camera"/> -->
-
-
-<!-- 
-
-<xacro:property name="camera_travel" value="0.15" />  <xacro:property name="camera_offset" value="0.05" />  <xacro:property name="camera_speed" value="1.0" />    <joint name="qr_camera_prismatic_joint" type="prismatic">
-  <parent link="base_link"/>
-  <child link="qr_camera_mount_link"/>
-  <origin xyz="0.0 0 0.1" rpy="0 0 -1.5708"/> 
-  <axis xyz="0 0 1"/> <limit effort="100.0" velocity="${camera_speed}" lower="${camera_offset}" upper="${camera_offset + camera_travel}"/>
-</joint>
-
-<link name="qr_camera_mount_link">
-  </link>
-
-<xacro:depth_camera_sensor parent="qr_camera_mount_link" name="qr_camera">
-  <origin xyz="0.0 0 0.0" rpy="0 0 0"/> 
-</xacro:depth_camera_sensor>
-
-<xacro:depth_camera_gazebo name="qr_camera"/> -->
-
-<!-- <ros2_control name="camera_control_system" type="system">
-  <hardware>
-    <plugin>gazebo_ros2_control/GazeboSystem</plugin>
-  </hardware>
-
-  <joint name="lift_joint">
-    <command_interface name="position"/>
-    <state_interface name="position"/>
-    <state_interface name="velocity"/>
-  </joint>
-</ros2_control> -->
-
-
-
-
-
-
+<xacro:depth_camera_gazebo name="camera"/>
 
 <xacro:imu_sensor parent="base_link" name="imu">
-  <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+  <origin xyz="-0.05 0 0.02" rpy="0 0 0"/>
 </xacro:imu_sensor>
 
 <xacro:imu_gazebo name="imu"/>
-
 
 
 
@@ -1248,7 +1190,6 @@
 </xacro:lift_camera_sensor>
 
 <xacro:lift_camera_gazebo name="lift_camera"/>
-
 
 
 

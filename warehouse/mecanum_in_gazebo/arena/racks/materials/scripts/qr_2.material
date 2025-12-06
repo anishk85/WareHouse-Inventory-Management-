@@ -1,0 +1,14 @@
+material QR_2
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture 2.png
+        filtering trilinear
+      }
+    }
+  }
+}

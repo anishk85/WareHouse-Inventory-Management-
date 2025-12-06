@@ -1,0 +1,5 @@
+/qr_detector_node:
+  ros__parameters:
+    camera_topic: "/image_raw"
+    publish_debug_image: false
+    detection_confidence_threshold: 0.5

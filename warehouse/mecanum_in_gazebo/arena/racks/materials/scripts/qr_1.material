@@ -1,0 +1,14 @@
+material QR_1
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture 1.png
+        filtering trilinear
+      }
+    }
+  }
+}

@@ -31,7 +31,6 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}/
 )
 install(PROGRAMS
-  scripts/create_keepout_mask.py
   DESTINATION lib/${PROJECT_NAME}
 )
 # Install maps directory

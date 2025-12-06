@@ -147,11 +147,11 @@ def generate_launch_description():
         output="screen",
     )
     
-    load_lift_position_controller_cmd =Node(
+    load_qr_camera_controller_cmd =Node(
         package="controller_manager",
         executable="spawner",
         arguments=[
-            "lift_position_controller",
+            "qr_camera_controller",
             "--controller-manager", "/controller_manager",
             "--ros-args",
             "--params-file", control_params_file
@@ -168,14 +168,14 @@ def generate_launch_description():
             )
         )
     )
-    # ld.add_action(
-    #     RegisterEventHandler(
-    #         OnProcessExit(
-    #             target_action=load_mecanum_controller_cmd,
-    #             on_exit=[load_lift_position_controller_cmd],
-    #         )
-    #     )
-    # )
+    ld.add_action(
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=load_mecanum_controller_cmd,
+                on_exit=[load_qr_camera_controller_cmd],
+            )
+        )
+    )
     
      # CMD_VEL Bridge - converts /cmd_vel to /mecanum_drive_controller/reference
     cmd_vel_bridge_node = Node(

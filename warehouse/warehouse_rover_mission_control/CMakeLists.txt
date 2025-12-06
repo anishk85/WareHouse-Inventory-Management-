@@ -48,12 +48,6 @@ ament_package()
 
 # Install Python scripts
 install(PROGRAMS
-  scripts/measure_rack_positions.py
-  DESTINATION lib/${PROJECT_NAME}
-)
-
-# Install Python scripts
-install(PROGRAMS
   scripts/lift_service_node.py
   scripts/measure_rack_positions.py
   scripts/auto_initialize_amcl.py

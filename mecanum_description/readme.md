@@ -255,29 +255,7 @@ ros2 launch mecanum_navigation_setup cartographer_navigation.launch.py
 
 ### With `warehouse_rover_mission_control` (Autonomous Operation)
 ```bash
-ros2 launch warehouse_rover_mission_control autonomous_inventory.launch.py
-```
-
----
-
-## Troubleshooting
-
-### Issue: Robot not moving in simulation
-**Solution**: Check that `mecanum_drive_controller` is loaded and active:
-```bash
-ros2 control list_controllers
-```
-
-### Issue: IMU data not working with EKF
-**Solution**: Use `sensor_bridge.py` to fix covariance:
-```bash
-ros2 run mecanum_description sensor_bridge.py
-```
-
-### Issue: Lift not responding
-**Solution**: Verify lift controller is active:
-```bash
-ros2 control list_controllers | grep lift
+ros2 launch warehouse_rover_mission_control master_autonomous_warehouse.launch.launch.py
 ```
 
 ---

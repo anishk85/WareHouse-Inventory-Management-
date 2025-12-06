@@ -76,6 +76,33 @@ docker run -it --rm \
   fibonacci69/inter_iit_workspace_gui:latest
 ```
 
+4. Install Package Dependencies (rosdep)
+
+Once inside the container and in the workspace source directory, use rosdep to install all required system dependencies (libraries, packages not included in the container image).
+
+```bash
+
+
+
+# This assumes you are in the root of the workspace directory
+
+rosdep install -i --from-path src --rosdistro humble -y
+```
+
+5. Build the Workspace (colcon)
+
+Use colcon to compile all the packages in the workspace.
+
+```Bash
+
+
+
+# This builds the packages using parallel jobs (recommended)
+
+colcon build --symlink-install
+
+```
+
 -----
 
 ## Usage
@@ -115,5 +142,20 @@ Initiates the master node to begin the autonomous inventory scan.
 ```bash
 ros2 launch warehouse_rover_mission_control master_autonomous_warehouse.launch.py
 ```
+
+### Video Demonstration:
+
+1. Real Hardware Mapping:
+![Hardware Mapping](./images/real_hardware_mapping.gif)
+
+2. Hardware Navigation:
+![Hardware Navigation](./images/navigation.gif)
+
+3. Z-Axis Movement:
+![Z-Axis Movement](./images/z-axis_hardware.gif)
+
+
+
+
 
 -----

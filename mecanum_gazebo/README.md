@@ -1,183 +1,181 @@
 # Mecanum Gazebo Package
 
-Gazebo simulation package for the mecanum wheel robot with ROS2 Humble integration.
-
 ## Overview
 
-This package provides a complete Gazebo simulation environment for testing the mecanum robot before hardware deployment. It includes physics simulation, sensor models, ros2_control integration, and a custom warehouse arena with racks, walls, and navigation tapes.
+This package provides a comprehensive, pre-configured simulation environment for testing and developing the mecanum robot prior to hardware deployment.
 
+Key features include:
 
-**Note** The paths to all meshes in the world file are absolute wrt docker image provided for this repo. Hence, if you want to use this repo in your environment, update the paths
+  * **Physics Simulation** with **ros2\_control** integration.
+  * **Sensor Models** (LiDAR, IMU, Depth Camera).
+  * Custom **Warehouse Arena** (`arena.world`) with racks, walls, and navigation tapes.
+
+> **Note on Mesh Paths**: The paths to all meshes in the world file are **absolute** with respect to the provided Docker image. If you use this repository in your own environment, you **must update these mesh paths** within the world file.
+
+-----
 
 ## Quick Start
 
-# Launch the simulation
-ros2 launch mecanum_gazebo simulation_world.launch.py
+Launch the complete simulation environment:
 
+```bash
+ros2 launch mecanum_gazebo simulation_world.launch.py
 ```
+
+### Simulation Startup Sequence
+
+1.  **Gazebo GUI** opens, displaying the custom warehouse arena (racks, walls, navigation tapes).
+2.  The robot spawns at the specified position (default: $x=0.8, y=0, z=0.055$).
+3.  Controllers load ($\sim 10$ seconds):
+      * `joint_state_broadcaster`: Publishes joint states.
+      * `mecanum_drive_controller`: Implements **Mecanum kinematics**.
+4.  Sensors begin publishing data (LiDAR, IMU, cameras).
+5.  The robot is ready for teleoperation or autonomous navigation.
+
+-----
 
 ## Package Structure
 
+The repository is organized to clearly separate world assets and configuration files.
+
 ```
 mecanum_gazebo/
-├── arena/                         # Custom warehouse world
-│   ├── arena.world               # Main Gazebo world file
-│   ├── materials/                # Textures and materials
-│   ├── models/                   # Custom Gazebo models
-│   ├── racks/                    # Warehouse rack models
-│   ├── tapes/                    # Navigation tape models
-│   └── walls/                    # Wall models
-├── launch/                        # Launch files
+├── arena/                       # Custom warehouse world assets
+│   ├── arena.world              # Main Gazebo world file
+│   ├── materials/               # Textures and materials
+│   ├── models/                  # Custom Gazebo models
+│   ├── racks/                   # Warehouse rack models
+│   ├── tapes/                   # Navigation tape models
+│   └── walls/                   # Wall models
+├── launch/                      # ROS 2 Launch files
 │   ├── simulation_world.launch.py # Main simulation launcher
-│   ├── gazebo.launch.py          # Alternative Gazebo launcher
-│   ├── spawn.launch.py           # Robot spawner
-│   ├── controller.launch.py      # Controller loader
+│   ├── gazebo.launch.py         # Alternative Gazebo launcher
+│   ├── spawn.launch.py          # Robot spawner
+│   ├── controller.launch.py     # Controller loader
 │   ├── robot_state.launch.py    # Robot state publisher
-│   ├── joint_broadcast.launch.py # Joint state broadcaster
-│   ├── display.launch.py         # RViz display
-│   └── urdf.rviz                 # RViz configuration
-├── include/                       # Header files (if any)
-├── CMakeLists.txt                # Build configuration
-├── package.xml                   # Package dependencies
-├── LICENSE                       # GPL-2.0 license
-└── README.md                     # This file
+│   ├── joint_broadcast.launch.py# Joint state broadcaster
+│   ├── display.launch.py        # RViz display
+│   └── urdf.rviz                # RViz configuration
+├── include/                     # Header files (if any)
+├── CMakeLists.txt               # Build configuration
+├── package.xml                  # Package dependencies
+├── LICENSE                      # GPL-2.0 license
+└── README.md                    # This file
 ```
 
-**Note**: Robot URDF files are located in the `mecanum_description` package under `urdf/` directory.
+> **Note**: Robot URDF files are located in the separate `mecanum_description` package under the `urdf/` directory.
+
+-----
 
 ## Robot Description (URDF)
 
+Robot URDF files are located in the **mecanum\_description** package.
+
 ### Main URDF Location
 
-Robot URDF files are located in the **mecanum_description** package:
-- Main robot: `mecanum_description/urdf/mec_rob.xacro`
-- Simulation control: `mecanum_description/urdf/mec_rob.ros2_control.xacro`
-- Hardware control: `mecanum_description/urdf/mec_rob.ros2_control.hardware.xacro`
-- Sensors: `lidar.xacro`, `depth_camera.xacro`, `imu.xacro`, `lift_camera.xacro`, `lift.xacro`
-- Gazebo plugins: `*.gazebo` files
+| Component | File Path (in `mecanum_description/urdf/`) |
+| :--- | :--- |
+| **Main Robot Structure** | `mec_rob.xacro` |
+| **Simulation Control** | `mec_rob.ros2_control.xacro` |
+| **Hardware Control** | `mec_rob.ros2_control.hardware.xacro` |
+| **Sensors** | `lidar.xacro`, `depth_camera.xacro`, `imu.xacro`, `lift_camera.xacro`, `lift.xacro` |
+| **Gazebo Plugins** | `*.gazebo` files |
 
+### Sensor Plugin Specifications
 
+Gazebo plugins enable realistic sensor data publishing:
 
-**What happens**:
-1. Gazebo GUI opens with warehouse arena (racks, walls, navigation tapes)
-2. Robot spawns at specified position (default: x=0.8, y=0, z=0.055)
-3. Controllers load (takes ~10 seconds):
-   - `joint_state_broadcaster` - Publishes joint states
-   - `mecanum_drive_controller` - Mecanum kinematics
-4. Sensors start publishing data (LiDAR, IMU, cameras)
-5. Robot is ready for teleoperation or autonomous navigation
+| Sensor | Plugin Library | Topic | Rate | Key Output/Range |
+| :--- | :--- | :--- | :--- | :--- |
+| **LiDAR** | `libgazebo_ros_ray_sensor.so` | `/scan` | 10 Hz | Range: $0.15 \text{-} 12.0 \text{ m}$ |
+| **IMU** | `libgazebo_ros_imu_sensor.so` | `/imu/data` | 100 Hz | Linear acceleration, angular velocity, orientation |
+| **Depth Camera** | `libgazebo_ros_camera.so` | `/camera/color/image_raw`, `/camera/depth/image_raw` | 30 FPS | Resolution: $640 \times 480$ |
 
-```
-
-**2. Sensor Plugins**:
-- **LiDAR**: `libgazebo_ros_ray_sensor.so`
-  - Topic: `/scan`
-  - Rate: 10 Hz
-  - Range: 0.15-12.0 m
-  
-- **IMU**: `libgazebo_ros_imu_sensor.so`
-  - Topic: `/imu/data`
-  - Rate: 100 Hz
-  - Outputs: Linear acceleration, angular velocity, orientation
-  
-- **Depth Camera**: `libgazebo_ros_camera.so`
-  - Topics: `/camera/color/image_raw`, `/camera/depth/image_raw`
-  - Resolution: 640×480
-  - FPS: 30
+-----
 
 ## Controllers Configuration
 
-### File Location
-
-Controllers are configured in the **mecanum_description** package:
-- File: `mecanum_description/config/controllers.yaml`
-
+Controllers are configured via the `mecanum_description/config/controllers.yaml` file.
 
 ### Controller Types
 
-**Joint State Broadcaster**:
-- Publishes `/joint_states` topic
-- Used by `robot_state_publisher` for TF tree
+| Controller | Subscribed Topic | Published Topic | Function |
+| :--- | :--- | :--- | :--- |
+| **Joint State Broadcaster** | N/A | `/joint_states` | Publishes joint states used by `robot_state_publisher` for the TF tree. |
+| **Mecanum Drive Controller** | `/mecanum_drive_controller/reference` (`TwistStamped`) | `/mecanum_drive_controller/odom` (`Odometry`) | Computes **mecanum wheel inverse kinematics** and publishes the `odom → base_link` TF. |
 
-**Mecanum Drive Controller**:
-- Subscribes: `/mecanum_drive_controller/reference` (TwistStamped)
-- Publishes: `/mecanum_drive_controller/odom` (Odometry)
-- Computes mecanum wheel inverse kinematics
-- Publishes `odom → base_link` TF
+-----
 
 ## Teleoperation
 
-### Keyboard Control
-
-Teleoperation is provided by the **mecanum_teleop** package:
+Keyboard control is provided by the **mecanum\_teleop** package:
 
 ```bash
 ros2 run mecanum_teleop mecanum_teleop_key
 ```
 
+-----
 
 ## Warehouse Arena
 
-The simulation includes a custom warehouse environment located in the `arena/` directory:
+The custom simulation environment is located in the `arena/` directory.
 
-### Arena Components
+### Arena Components and Features
 
-- **arena.world**: Main Gazebo world file with warehouse setup
-- **racks/**: Warehouse storage rack models for navigation
-- **walls/**: Perimeter and internal wall models
-- **tapes/**: Navigation line markers on the floor
-- **materials/**: Textures and visual materials
-- **models/**: Custom Gazebo model definitions
+| Component | Files | Features |
+| :--- | :--- | :--- |
+| **Main World** | `arena.world` | Defines the overall warehouse setup, lighting, and physics. |
+| **Models** | `racks/`, `walls/`, `models/` | Provides realistic storage racks, perimeter walls, and custom objects for navigation. |
+| **Navigation** | `tapes/` | Includes navigation line markers on the floor for testing **line-following algorithms**. |
 
-### Arena Features
-
-- Realistic warehouse layout with storage racks
-- Navigation tapes for line-following algorithms
-- Proper lighting and shadows
-- Physics-enabled collision models
-- Optimized for both visualization and navigation testing
+-----
 
 ## Topics Reference
 
 ### Published Topics
 
 | Topic | Type | Rate | Description |
-|-------|------|------|-------------|
-| `/joint_states` | sensor_msgs/JointState | 50 Hz | Wheel joint states |
-| `/mecanum_drive_controller/odom` | nav_msgs/Odometry | 50 Hz | Raw wheel odometry |
-| `/odom` | nav_msgs/Odometry | 50 Hz | Processed odometry |
-| `/odometry/local` | nav_msgs/Odometry | 50 Hz | EKF fused (if running) |
-| `/imu/data` | sensor_msgs/Imu | 100 Hz | Raw IMU |
-| `/imu/data_fixed` | sensor_msgs/Imu | 100 Hz | IMU with covariances |
-| `/scan` | sensor_msgs/LaserScan | 10 Hz | LiDAR scan |
-| `/camera/color/image_raw` | sensor_msgs/Image | 30 Hz | RGB image |
-| `/camera/depth/image_raw` | sensor_msgs/Image | 30 Hz | Depth image |
-| `/tf` | tf2_msgs/TFMessage | Variable | Transform tree |
+| :--- | :--- | :--- | :--- |
+| `/joint_states` | `sensor_msgs/JointState` | 50 Hz | Wheel joint states. |
+| `/mecanum_drive_controller/odom` | `nav_msgs/Odometry` | 50 Hz | Raw wheel odometry from the controller. |
+| `/odom` | `nav_msgs/Odometry` | 50 Hz | Processed odometry. |
+| `/odometry/local` | `nav_msgs/Odometry` | 50 Hz | EKF fused odometry (if running). |
+| `/imu/data` | `sensor_msgs/Imu` | 100 Hz | Raw IMU data. |
+| `/imu/data_fixed` | `sensor_msgs/Imu` | 100 Hz | IMU data with covariances. |
+| `/scan` | `sensor_msgs/LaserScan` | 10 Hz | LiDAR scan data. |
+| `/camera/color/image_raw` | `sensor_msgs/Image` | 30 Hz | RGB image. |
+| `/camera/depth/image_raw` | `sensor_msgs/Image` | 30 Hz | Depth image. |
+| `/tf` | `tf2_msgs/TFMessage` | Variable | Transform tree broadcasts. |
 
 ### Subscribed Topics
 
 | Topic | Type | Description |
-|-------|------|-------------|
-| `/cmd_vel` | geometry_msgs/Twist | Velocity commands (input) |
-| `/mecanum_drive_controller/reference` | geometry_msgs/TwistStamped | Controller input |
+| :--- | :--- | :--- |
+| `/cmd_vel` | `geometry_msgs/Twist` | Velocity commands (input). |
+| `/mecanum_drive_controller/reference` | `geometry_msgs/TwistStamped` | Controller input. |
+
+-----
 
 ## TF Tree
 
 ### Simulation TF Tree
 
+The structure of the transform tree:
+
 ```
 odom
- └─ base_link (published by mecanum_drive_controller)
-     ├─ imu_link
-     ├─ lidar_link
-     ├─ camera_link
-     ├─ wheel_frame_FL_1
-     ├─ wheel_frame_FR_1
-     ├─ wheel_frame_BL_1
-     └─ wheel_frame_BR_1
-         └─ roller_* (36 rollers total)
+ └─ base_link (published by mecanum_drive_controller)
+     ├─ imu_link
+     ├─ lidar_link
+     ├─ camera_link
+     ├─ wheel_frame_FL_1
+     ├─ wheel_frame_FR_1
+     ├─ wheel_frame_BL_1
+     └─ wheel_frame_BR_1
+         └─ roller_* (36 rollers total)
 ```
 
 **Publishers**:
-- `odom → base_link`: `mecanum_drive_controller`
-- `base_link → sensors/wheels`: `robot_state_publisher` (from URDF)
+
+  * `odom → base_link`: `mecanum_drive_controller`
+  * `base_link → sensors/wheels`: `robot_state_publisher` (from URDF)

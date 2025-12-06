@@ -87,7 +87,7 @@ ros2 launch mecanum_navigation_setup cartographer.launch.py
 ### 3. Warehouse Mission
 Run the mission control node to start an inventory scan:
 ```bash
-ros2 run warehouse_rover_mission_control mission_control_node
+ros2 launch warehouse_rover_mission_control master_autonomous_warehouse.launch.py
 ```
 
 ## Dependencies

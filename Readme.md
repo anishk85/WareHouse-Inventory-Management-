@@ -76,7 +76,7 @@ docker run -it --rm \
   fibonacci69/inter_iit_workspace_gui:latest
 ```
 
-4. Install Package Dependencies (rosdep)
+**4. Install Package Dependencies (rosdep)**
 
 Once inside the container and in the workspace source directory, use rosdep to install all required system dependencies (libraries, packages not included in the container image).
 
@@ -89,7 +89,7 @@ Once inside the container and in the workspace source directory, use rosdep to i
 rosdep install -i --from-path src --rosdistro humble -y
 ```
 
-5. Build the Workspace (colcon)
+**5. Build the Workspace (colcon)**
 
 Use colcon to compile all the packages in the workspace.
 

@@ -147,22 +147,16 @@ ros2 launch warehouse_rover_mission_control master_autonomous_warehouse.launch.p
 
 <div align="center">
 
-<h3>1. Real Hardware Mapping</h3>
-<img src="images/real_hardware_mapping.gif" width="70%" alt="Hardware Mapping"/>
-
-<h3>2. Hardware Navigation</h3>
+<h3>1. Hardware Navigation</h3>
 <img src="images/navigation.gif" width="70%" alt="Hardware Navigation"/>
 
-<h3>3. Z-Axis Movement</h3>
+<h3>2. Z-Axis Movement</h3>
 <img src="images/z-axis_hardware.gif" width="70%" alt="Z-Axis Movement"/>
 
-<h3>4. Obstacle Avoidance</h3>
+<h3>3. Obstacle Avoidance</h3>
 <img src="images/obstacle_avoid.gif" width="70%" alt="Obstacle Avoidance"/>
 
 </div>
-
-
-
 
 
 -----

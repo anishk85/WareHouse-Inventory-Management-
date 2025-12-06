@@ -59,10 +59,10 @@ The workspace is organized into core robot packages and warehouse-specific appli
 3.  **Start the image**
     ```bash
     docker run -it --rm \
-  --net=host \
-  -e DISPLAY=$DISPLAY \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  fibonacci69/inter_iit_workspace_gui:latest
+     --net=host \
+     -e DISPLAY=$DISPLAY \
+     -v /tmp/.X11-unix:/tmp/.X11-unix \
+     fibonacci69/inter_iit_workspace_gui:latest
     ```
 
 

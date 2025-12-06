@@ -48,11 +48,10 @@ The workspace is organized into core robot packages and warehouse-specific appli
     docker pull fibonacci69/inter_iit_workspace_gui:latest
     ```
 
-2.  **Give GUI access**
+2.  **Give GUI access to docker**
     ```bash
     xhost +local:docker
     ```
-    *Note: Ensure you have `libopencv-dev`, `libzbar-dev`, and `libsqlite3-dev` installed.*
 
 
 

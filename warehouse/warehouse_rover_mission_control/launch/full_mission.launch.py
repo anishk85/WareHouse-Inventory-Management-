@@ -206,8 +206,8 @@ def generate_launch_description():
     
     mission_controller = Node(
         package='warehouse_rover_mission_control',
-        executable='mission_controller_python.py',
-        name='mission_controller_python',
+        executable='mission_controller_node',
+        name='mission_controller',
         parameters=[{
             'use_sim_time': use_sim_time,
             'scan_dwell_time': 3.0,
@@ -280,7 +280,7 @@ def generate_launch_description():
     # Phase 7: Start mission controller (20s - after everything is ready)
     ld.add_action(TimerAction(
         period=27.0,
-        actions=[mission_controller]
+        actions=[mission_controller_python]
     ))
     
     return ld

@@ -38,5 +38,5 @@ ros2 launch mecanum_gazebo simulation_world.launch.py
 
 
 ```bash
-ros2 launch warehouse_rover_mission_control mission.launch.py
+ros2 launch warehouse_rover_mission_control master_autonomous_warehouse.launch.py
 ```

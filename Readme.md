@@ -154,6 +154,9 @@ ros2 launch warehouse_rover_mission_control master_autonomous_warehouse.launch.p
 3. Z-Axis Movement:
 ![Z-Axis Movement](./images/z-axis_hardware.gif)
 
+4. Obstacle Avoidance:
+![Obstacle Avoidance](./images/obstacle_avoid.gif)
+
 
 
 

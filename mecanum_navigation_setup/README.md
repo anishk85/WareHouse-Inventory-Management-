@@ -47,7 +47,7 @@ ros2 launch mecanum_gazebo simulation_world.launch.py
 **Step 2: Start SLAM**
 
 ```bash
-ros2 launch mecanum_navigation_setup navigation.launch.py use_sim_time:=true
+ros2 launch mecanum_navigation_setup slam.launch.py use_sim_time:=true
 ```
 
 **Step 3: Explore and Save**
@@ -61,7 +61,7 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard
 **Step 4: Save the Map**
 
 ```bash
-ros2 run nav2_map_server map_saver_cli -f ~/my_warehouse_map
+ros2 run nav2_map_server map_saver_cli -f ~/maps
 # Move the resulting .pgm and .yaml files to mecanum_navigation_setup/maps/
 ```
 

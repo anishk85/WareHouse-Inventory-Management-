@@ -17,6 +17,7 @@ install(PROGRAMS
   scripts/imu_covariance_fixer.py
   scripts/sensor_bridge.py
   scripts/cmd_vel_bridge.py
+  scripts/return_to_spawn.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

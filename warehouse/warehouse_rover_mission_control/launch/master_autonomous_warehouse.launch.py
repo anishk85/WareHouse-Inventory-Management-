@@ -177,7 +177,7 @@ def generate_launch_description():
     ld.add_action(declare_use_sim_time_cmd)
     
     # Phase 1: Start Gazebo immediately
-    ld.add_action(gazebo_launch)
+    # ld.add_action(gazebo_launch)
     
     # Phase 2: Start odometry + motor control (8s)
     ld.add_action(TimerAction(

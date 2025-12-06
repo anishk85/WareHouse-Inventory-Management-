@@ -2,15 +2,19 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
+import yaml # Import the YAML library
+import os   # Import os for file path manipulation
 
 class WaypointLogger(Node):
     def __init__(self):
         super().__init__('waypoint_logger')
         self.waypoints = []
         
+        # Define the output file path
+        # It will be saved in the directory where the node is executed
+        self.output_filename = 'recorded_waypoints.yaml' 
+        
         # --- CRITICAL CHANGE ---
-        # We listen to a CUSTOM topic, not the default Nav2 topic ('/goal_pose').
-        # This ensures the robot's navigation stack (Nav2) ignores these clicks.
         self.custom_topic = '/recorded_pose'
         
         # Create subscription
@@ -23,59 +27,73 @@ class WaypointLogger(Node):
         
         print(f"Waypoint Logger Node Started: {self.get_name()}")
         print("---------------------------------------------------")
-        print("CRITICAL: You must change RViz 2 settings for this to work!")
-        print("---------------------------------------------------")
-        print("INSTRUCTIONS:")
-        print("1. Open RViz 2.")
-        print("2. Look at the 'Tools' panel (usually on the left or top).")
-        print("   If you don't see the tool properties, go to Panels -> Tool Properties.")
-        print("3. Find the '2D Goal Pose' tool (or the arrow tool you use for navigation).")
-        print(f"4. Change the 'Topic' field from '/goal_pose' (or similar) to '{self.custom_topic}'.")
-        print("5. Now, use the '2D Goal Pose' arrow to click points.")
-        print("   The robot will NOT move, but the point will be captured here.")
-        print("6. Press Ctrl+C in this terminal when done to get your array.")
+        print("INSTRUCTIONS (RViz 2):")
+        print("1. Find the '2D Goal Pose' tool.")
+        print(f"2. Change its 'Topic' field to '{self.custom_topic}'.")
+        print("3. Use the arrow tool to click points.")
+        print("4. Press Ctrl+C to stop and save the file.")
         print("---------------------------------------------------")
 
     def listener_callback(self, msg):
-        # Extract position
+        # Extract position and orientation
         p = msg.pose.position
-        # Extract orientation
         o = msg.pose.orientation
         
-        # Store simplified data
+        # Store simplified data in a dictionary that mirrors the YAML structure
         waypoint = {
-            'x': p.x, 'y': p.y, 'z': p.z,
-            'qx': o.x, 'qy': o.y, 'qz': o.z, 'qw': o.w
+            'x': p.x, 
+            'y': p.y, 
+            'z': p.z,
+            # Storing orientation as a list of quaternion components
+            'yaw_quat': [o.x, o.y, o.z, o.w]
         }
         
         self.waypoints.append(waypoint)
         
-        print(f"Captured Point {len(self.waypoints)}: x={p.x:.2f}, y={p.y:.2f} Orientation (quat)=({o.x:.2f}, {o.y:.2f}, {o.z:.2f}, {o.w:.2f})")
+        print(f"Captured Point {len(self.waypoints)}: x={p.x:.2f}, y={p.y:.2f}")
 
-    def print_waypoints(self):
-        print("\n\n" + "="*50)
-        print(" FINAL WAYPOINTS ARRAY ")
-        print(" Copy this list into your navigation script:")
-        print("="*50)
-        print("waypoints = [")
-        for i, wp in enumerate(self.waypoints):
-            comma = "," if i < len(self.waypoints) - 1 else ""
-            print(f"    {{'x': {wp['x']:.4f}, 'y': {wp['y']:.4f}, 'yaw_quat': [{wp['qx']:.4f}, {wp['qy']:.4f}, {wp['qz']:.4f}, {wp['qw']:.4f}]}}{comma}")
-        print("]")
-        print("="*50)
-        print("NOTE: Don't forget to change the RViz 2 topic back to '/goal_pose'")
-        print("      (or whatever your Nav2 stack uses) to command the robot normally again!")
+    def save_waypoints_to_file(self):
+        """Writes the captured waypoints to a YAML file."""
+        
+        # Prepare the final data structure for the YAML file
+        data = {
+            'waypoints': self.waypoints
+        }
+        
+        try:
+            with open(self.output_filename, 'w') as f:
+                # Use safe_dump for security and standard YAML formatting
+                yaml.safe_dump(data, f, indent=4) 
+            
+            # Use os.path.abspath to print the full file path for easy access
+            full_path = os.path.abspath(self.output_filename)
+            
+            print("\n\n" + "="*70)
+            print(" ✅ WAYPOINTS SUCCESSFULLY SAVED TO FILE! ")
+            print("="*70)
+            print(f"File: **{self.output_filename}**")
+            print(f"Path: {full_path}")
+            print("---------------------------------------------------")
+            print("NOTE: Other nodes can load this file using the 'yaml' library.")
+
+        except Exception as e:
+            self.get_logger().error(f"Failed to write waypoints to file: {e}")
 
 def main(args=None):
     rclpy.init(args=args)
     logger = WaypointLogger()
     
     try:
+        # Spin until the user presses Ctrl+C
         rclpy.spin(logger)
+        
     except KeyboardInterrupt:
+        # KeyboardInterrupt is caught when Ctrl+C is pressed
         pass
+        
     finally:
-        logger.print_waypoints()
+        # This function is called when the node is shut down
+        logger.save_waypoints_to_file()
         logger.destroy_node()
         rclpy.shutdown()
 

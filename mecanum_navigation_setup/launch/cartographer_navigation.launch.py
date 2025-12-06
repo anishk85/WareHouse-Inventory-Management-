@@ -21,12 +21,14 @@ def generate_launch_description():
     mecanum_pkg = get_package_share_directory('mecanum_gazebo')
     nav_pkg = get_package_share_directory('mecanum_navigation_setup')
     nav2_bringup_pkg = get_package_share_directory('nav2_bringup')
+    # map_path = LaunchConfiguration('map_path', default=os.path.join(nav_pkg, 'maps', 'new_maps.yaml'))
+    
     
     # Config files
     nav2_params = os.path.join(nav_pkg, 'config', 'nav2_params.yaml')
     cartographer_config_dir = os.path.join(nav_pkg, 'config')
     rviz_config = os.path.join(nav_pkg, 'rviz', 'nav2.rviz')
-    map_yaml = os.path.join(nav_pkg, 'maps', 'my_maps.yaml')
+    map_yaml = os.path.join(nav_pkg, 'maps', 'new_maps.yaml')
     
     # ============================================================
     # LAUNCH ARGUMENTS for INITIAL POSE in AMCL
@@ -35,6 +37,10 @@ def generate_launch_description():
     init_y = LaunchConfiguration('init_y')
     init_z = LaunchConfiguration('init_z', default='1.0')
     init_w = LaunchConfiguration('init_w', default='0.0')
+    
+    # declare_map_path_cmd = DeclareLaunchArgument(
+    #     'map_path', default_value=map_yaml, description='Full path to map file to   load'   
+    # )
     
     declare_init_z_cmd = DeclareLaunchArgument(
         'init_z', default_value='1.0', description='Initial Z orientation for AMCL'

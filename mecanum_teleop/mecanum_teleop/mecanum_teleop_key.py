@@ -30,6 +30,7 @@ class MecanumTeleop(Node):
         self.cmd_pub = self.create_publisher(
             TwistStamped,
             '/mecanum_drive_controller/reference',
+            # 'twist_mux/cmd_vel_teleop',
             10
         )
         

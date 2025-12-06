@@ -1,91 +1,119 @@
+
 # Inter-IIT Warehouse Robot Workspace
 
-This ROS 2 workspace contains the software stack for a mecanum-wheeled mobile robot designed for autonomous warehouse inventory management. The system includes simulation, hardware interfacing, navigation, and specific applications for QR code scanning and rack detection.
+This ROS 2 workspace contains the comprehensive software stack for a mecanum-wheeled mobile robot designed for autonomous warehouse inventory management. The system integrates simulation environments, hardware interfacing, autonomous navigation, and specialized applications for QR code scanning and rack detection.
 
 ## Workspace Structure
 
-The workspace is organized into core robot packages and warehouse-specific application packages.
+The workspace architecture is divided into **Core Robot Packages** (hardware and navigation) and **Warehouse Application Packages** (high-level logic and sensing).
 
-### Core Robot Packages
+### 1\. Core Robot Packages
 
-*   **`mecanum_hardware`** (located in `mecanum_bringup`):
-    *   Provides the hardware interface for the robot, controlling stepper motors and reading sensors.
-    *   Handles communication with the ESP32 firmware.
-*   **`mecanum_description`**:
-    *   Contains the URDF and Xacro robot descriptions.
-    *   Defines the physical properties, visual meshes, and collision models.
-*   **`mecanum_gazebo`**:
-    *   Simulation environment for Gazebo.
-    *   Includes worlds and launch files to spawn the robot in a simulated warehouse.
-*   **`mecanum_navigation_setup`**:
-    *   Configuration and launch files for the ROS 2 Navigation Stack (Nav2).
-    *   Includes SLAM Toolbox and Cartographer for mapping and localization.
-*   **`mecanum_teleop`**:
-    *   Scripts for teleoperating the robot using a keyboard or joystick.
+These packages handle the low-level control, simulation, and navigation capabilities.
 
-### Warehouse Application Packages (`warehouse/`)
+  * **`mecanum_hardware`** (via `mecanum_bringup`)
+      * Provides the hardware interface for controlling stepper motors and reading sensors.
+      * Manages serial communication with the ESP32 firmware.
+  * **`mecanum_description`**
+      * Contains URDF and Xacro robot descriptions.
+      * Defines physical properties, visual meshes, and collision models.
+  * **`mecanum_gazebo`**
+      * Simulation environment powered by Gazebo.
+      * Includes world files and launch configurations to spawn the robot in a simulated warehouse.
+  * **`mecanum_navigation_setup`**
+      * Configuration and launch files for the ROS 2 Navigation Stack (Nav2).
+      * Integrates SLAM Toolbox and Cartographer for mapping and real-time localization.
+  * **`mecanum_teleop`**
+      * Scripts for manual robot control via keyboard or joystick.
 
-*   **`warehouse_rover_mission_control`**:
-    *   High-level mission executive that coordinates autonomous scanning tasks.
-    *   Manages the state machine for navigating to racks and performing inventory checks.
-*   **`warehouse_rover_qr_detection`**:
-    *   Detects and parses QR codes from camera feeds using OpenCV and ZBar.
-*   **`warehouse_rover_image_processing`**:
-    *   Performs image preprocessing to improve QR detection rates.
-*   **`warehouse_rover_rack_detection`**:
-    *   Analyzes occupancy grid maps to identify rack locations dynamically.
-*   **`warehouse_rover_lift_control`**:
-    *   Controls the vertical lift mechanism for scanning shelves at different heights.
-*   **`warehouse_rover_database`**:
-    *   Manages a SQLite database to store inventory data scanned by the robot.
-*   **`warehouse_rover_msgs`**:
-    *   Defines custom ROS 2 messages and services used across the warehouse packages.
+### 2\. Warehouse Application Packages (`warehouse/`)
 
-## Installation
+These packages implement specific mission logic for the Inter-IIT challenge.
 
-1.  **Docker Pull**
-    ```bash
-    docker pull fibonacci69/inter_iit_workspace_gui:latest
-    ```
+  * **`warehouse_rover_mission_control`**
+      * **High-Level Executive:** Coordinates autonomous scanning tasks.
+      * **State Machine:** Manages navigation to racks and inventory check sequences.
+  * **`warehouse_rover_qr_detection`**
+      * Detects and parses QR codes from video feeds utilizing OpenCV and ZBar.
+  * **`warehouse_rover_image_processing`**
+      * Performs pre-processing on raw image data to maximize QR detection accuracy.
+  * **`warehouse_rover_rack_detection`**
+      * Analyzes occupancy grid maps to dynamically identify rack locations.
+  * **`warehouse_rover_lift_control`**
+      * Controls the vertical lift mechanism to facilitate scanning at various shelf heights.
+  * **`warehouse_rover_database`**
+      * Manages a SQLite database to persistently store scanned inventory data.
+  * **`warehouse_rover_msgs`**
+      * Defines custom ROS 2 messages and services used for inter-node communication.
 
-2.  **Give GUI access to docker**
-    ```bash
-    xhost +local:docker
-    ```
+-----
 
+##  Installation
 
+The environment is containerized for ease of use. Follow these steps to set up the Docker container.
 
-3.  **Start the image**
-    ```bash
-    docker run -it --rm \
-     --net=host \
-     -e DISPLAY=$DISPLAY \
-     -v /tmp/.X11-unix:/tmp/.X11-unix \
-     fibonacci69/inter_iit_workspace_gui:latest
-    ```
+**1. Pull the Docker Image**
 
+```bash
+docker pull fibonacci69/inter_iit_workspace_gui:latest
+```
 
+**2. Grant GUI Access**
+Allow the Docker container to access the host display (X11).
+
+```bash
+xhost +local:docker
+```
+
+**3. Launch the Container**
+Run the container with host networking and display forwarding enabled.
+
+```bash
+docker run -it --rm \
+  --net=host \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  fibonacci69/inter_iit_workspace_gui:latest
+```
+
+-----
 
 ## Usage
 
-### 1. Simulation
-Launch the robot in the Gazebo warehouse environment:
+Once inside the container, you can execute the following commands to run specific modules.
+
+### 1\. Simulation
+
+Spawns the robot in the Gazebo warehouse environment.
+
 ```bash
 ros2 launch mecanum_gazebo simulation_world.launch.py
 ```
 
-### 2. Navigation
-Launch the navigation stack (AMCL + Nav2):
+### 2\. Navigation
+
+Launch the navigation stack using your preferred method.
+
+**Option A: Navigation (AMCL + Nav2)**
+*Use this for navigating a known map.*
+
 ```bash
 ros2 launch mecanum_navigation_setup cartographer_navigation.launch.py
 ```
-*Or for SLAM (Mapping):*
+
+**Option B: SLAM (Mapping)**
+*Use this to generate a new map of the environment.*
+
 ```bash
-ros2 launch mecanum_navigation_setup cartographer.launch.py
+ros2 launch mecanum_navigation_setup slam.launch.py
 ```
 
-### 3. Warehouse Mission 
-Run the mission control node to start an inventory scan:
+### 3\. Warehouse Mission
+
+Initiates the master node to begin the autonomous inventory scan.
+
 ```bash
 ros2 launch warehouse_rover_mission_control master_autonomous_warehouse.launch.py
 ```
+
+-----

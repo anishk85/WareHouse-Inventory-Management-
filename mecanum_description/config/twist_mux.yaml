@@ -9,17 +9,11 @@ twist_mux:
       # 1. Teleop Input (Highest Priority)
       - name: 'teleop'
         topic: 'twist_mux/cmd_vel_teleop'
-        timeout: 0.5  # If user stops typing for 0.5s, switch to next lowest priority
-        priority: 100 
+        timeout: '1.0'
+        priority: '100' 
 
       # 2. Nav2 Input (Lower Priority)
       - name: 'navigation'
         topic: 'twist_mux/cmd_vel_nav'
-        timeout: 0.1  
-        priority: 80
-        
-      # 3. Default Stop Command (Lowest Priority)
-      - name: 'safety_stop'
-        topic: 'zero_vel' # An optional topic that always publishes 0, 0, 0
-        timeout: 0.0 # Never times out
-        priority: 0
+        timeout: '0.1'  
+        priority: '80'

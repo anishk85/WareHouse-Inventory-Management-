@@ -25,7 +25,8 @@ class CmdVelBridge(Node):
         # Publish to /mecanum_drive_controller/reference (TwistStamped)
         self.reference_pub = self.create_publisher(
             TwistStamped,
-            '/mecanum_drive_controller/reference',
+            '/mecanum_drive_controller/reference', # changed to use twist_mux for nav2 compatibility
+            # 'twist_mux/cmd_vel_nav',
             10
         )
         

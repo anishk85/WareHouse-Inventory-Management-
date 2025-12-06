@@ -154,6 +154,25 @@ def generate_launch_description():
         output='screen'
     )
     
+    twist_mux_pkg = 'mecanum_description'
+
+    # 2. Find the full path to the configuration file
+    twist_mux_config = os.path.join(
+        get_package_share_directory(twist_mux_pkg),
+        'config',
+        'twist_mux.yaml'
+    )
+    
+    twist_mux_node = Node(
+        package='twist_mux',
+        executable='twist_mux',
+        name='twist_mux',
+        parameters=[twist_mux_config],
+        
+    )
+    
+    
+    
     ld.add_action(TimerAction(period=5.0, actions=[load_joint_broadcaster_cmd]))
     
     # ld.add_action(
@@ -169,6 +188,8 @@ def generate_launch_description():
     
     ld.add_action(TimerAction(period=10.0, actions=[load_lift_controller_cmd]))
     
+    
+    # ld.add_action(TimerAction(period=12.0, actions=[twist_mux_node]))
     
     
     # ld.add_action(
@@ -209,13 +230,13 @@ def generate_launch_description():
     # ld.add_action(cmd_vel_bridge_node)
     # ld.add_action(sensor_bridge_node)
     
-    ld.add_action(TimerAction(period=12.0, actions=[cmd_vel_bridge_node]))
+    ld.add_action(TimerAction(period=14.0, actions=[cmd_vel_bridge_node]))
     
     # Start TF relay to publish odom->base_link transform to /tf
     # ld.add_action(TimerAction(period=10.0, actions=[tf_odometry_relay_node]))
     
     # Start sensor bridge to publish odometry to /odom
-    ld.add_action(TimerAction(period=15.0, actions=[sensor_bridge_node]))
+    ld.add_action(TimerAction(period=16.0, actions=[sensor_bridge_node]))
     
 
     # All controller and timer-related actions have been removed

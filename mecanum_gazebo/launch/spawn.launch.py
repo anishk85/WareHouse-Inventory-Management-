@@ -160,22 +160,26 @@ def generate_launch_description():
     )
     
     ld.add_action(TimerAction(period=5.0, actions=[load_joint_broadcaster_cmd]))
-    ld.add_action(
-        RegisterEventHandler(
-            OnProcessExit(
-                target_action=load_joint_broadcaster_cmd,
-                on_exit=[load_mecanum_controller_cmd],
-            )
-        )
-    )
-    ld.add_action(
-        RegisterEventHandler(
-            OnProcessExit(
-                target_action=load_mecanum_controller_cmd,
-                on_exit=[load_qr_camera_controller_cmd],
-            )
-        )
-    )
+    
+    # ld.add_action(
+    #     RegisterEventHandler(
+    #         OnProcessExit(
+    #             target_action=load_joint_broadcaster_cmd,
+    #             on_exit=[load_mecanum_controller_cmd],
+    #         )
+    #     )
+    # )
+    
+    ld.add_action(TimerAction(period=8.0, actions=[load_mecanum_controller_cmd]))
+    
+    # ld.add_action(
+    #     RegisterEventHandler(
+    #         OnProcessExit(
+    #             target_action=load_mecanum_controller_cmd,
+    #             on_exit=[load_qr_camera_controller_cmd],
+    #         )
+    #     )
+    # )
     
      # CMD_VEL Bridge - converts /cmd_vel to /mecanum_drive_controller/reference
     cmd_vel_bridge_node = Node(
@@ -212,7 +216,7 @@ def generate_launch_description():
     # ld.add_action(TimerAction(period=10.0, actions=[tf_odometry_relay_node]))
     
     # Start sensor bridge to publish odometry to /odom
-    ld.add_action(TimerAction(period=10.0, actions=[sensor_bridge_node]))
+    ld.add_action(TimerAction(period=13.0, actions=[sensor_bridge_node]))
     
 
     # All controller and timer-related actions have been removed

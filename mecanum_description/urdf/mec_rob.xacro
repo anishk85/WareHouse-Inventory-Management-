@@ -24,6 +24,9 @@
 <xacro:include filename="mec_rob.gazebo" />
 <xacro:include filename="imu.gazebo" />
 <xacro:include filename="imu.xacro" />
+<xacro:include filename="lift.xacro" />
+<xacro:include filename="lift_camera.xacro" />
+<xacro:include filename="lift_camera.gazebo" />
 
 
 <link name="base_link">

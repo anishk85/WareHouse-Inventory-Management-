@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="lift" params="parent name origin_xyz origin_rpy">
+
+    <!-- LIFT LINK -->
+    <link name="${name}_platform_link">
+      <visual>
+        <origin xyz="${origin_xyz}" rpy="${origin_rpy}"/>
+        <geometry>
+          <box size="0.05 0.05 0.01"/>
+        </geometry>
+        <material name="blue"/>
+      </visual>
+
+      <collision>
+        <origin xyz="${origin_xyz}" rpy="${origin_rpy}"/>
+        <geometry>
+          <box size="0.05 0.05 0.01"/>
+        </geometry>
+      </collision>
+
+      <inertial>
+        <mass value="1.5"/>
+        <inertia 
+          ixx="0.01" iyy="0.01" izz="0.01"
+          ixy="0.0" ixz="0.0" iyz="0.0"/>
+      </inertial>
+    </link>
+
+
+    <!-- PRISMATIC JOINT -->
+    <joint name="${name}_joint" type="prismatic">
+      <parent link="${parent}"/>
+      <child link="${name}_platform_link"/>
+
+      <origin xyz="${origin_xyz}" rpy="${origin_rpy}"/>
+      <axis xyz="0 0 1"/>
+
+      <limit lower="0.0" upper="3.0" velocity="0.2" effort="200"/>
+    </joint>
+
+  </xacro:macro>
+
+</robot>

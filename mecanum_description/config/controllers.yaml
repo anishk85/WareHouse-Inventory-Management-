@@ -9,11 +9,14 @@ controller_manager:
     mecanum_drive_controller:
       type: mecanum_drive_controller/MecanumDriveController
 
-    qr_camera_controller:
-      type: position_controllers/JointGroupPositionController # Use Position controller for linear actuation
+    # qr_camera_controller:
+    #   type: position_controllers/JointGroupPositionController # Use Position controller for linear actuation
 
     # lift_position_controller:
     #   type: joint_trajectory_controller/JointTrajectoryController
+
+    joint_trajectory_controller:
+    type: "joint_trajectory_controller/JointTrajectoryController"
 
 joint_state_broadcaster:
   ros__parameters:
@@ -69,11 +72,11 @@ mecanum_drive_controller:
 
 
 
-qr_camera_controller:
-  ros__parameters:
-    use_sim_time: true
-    joints:
-      - qr_camera_prismatic_joint
+# qr_camera_controller:
+#   ros__parameters:
+#     use_sim_time: true
+#     joints:
+#       - qr_camera_prismatic_joint
 
 
 # lift_position_controller:
@@ -87,3 +90,27 @@ qr_camera_controller:
 #       - velocity
 #     gains:
 #       lift_joint: { p: 150.0, i: 0.0, d: 10.0 }
+
+joint_trajectory_controller:
+  ros__parameters:
+    joints:
+      - lift_joint
+
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+      - velocity
+
+    # state_publish_rate: 50.0
+    # action_monitor_rate: 20.0
+
+    # allow_partial_joints_goal: false
+    # open_loop_control: true
+    # constraints:
+    #   stopped_velocity_tolerance: 0.01
+    #   goal_time: 0.0
+    #   joint1:
+    #     trajectory: 0.05
+    #     goal: 0.03

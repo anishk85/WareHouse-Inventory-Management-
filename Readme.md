@@ -43,28 +43,29 @@ The workspace is organized into core robot packages and warehouse-specific appli
 
 ## Installation
 
-1.  **Clone the repository:**
+1.  **Docker Pull**
     ```bash
-    cd ~/ros_ws/src
-    # Clone your repo here
+    docker pull fibonacci69/inter_iit_workspace_gui:latest
     ```
 
-2.  **Install dependencies:**
+2.  **Give GUI access**
     ```bash
-    cd ~/ros_ws
-    rosdep install --from-paths src --ignore-src -r -y
+    xhost +local:docker
     ```
     *Note: Ensure you have `libopencv-dev`, `libzbar-dev`, and `libsqlite3-dev` installed.*
 
-3.  **Build the workspace:**
+
+
+3.  **Start the image**
     ```bash
-    colcon build
+    docker run -it --rm \
+  --net=host \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  fibonacci69/inter_iit_workspace_gui:latest
     ```
 
-4.  **Source the setup script:**
-    ```bash
-    source install/setup.bash
-    ```
+
 
 ## Usage
 
@@ -89,12 +90,3 @@ Run the mission control node to start an inventory scan:
 ```bash
 ros2 launch warehouse_rover_mission_control master_autonomous_warehouse.launch.py
 ```
-
-## Dependencies
-
-*   **ROS 2** (Humble/Iron/Rolling)
-*   **Nav2** (Navigation 2 Stack)
-*   **Gazebo** (Simulation)
-*   **OpenCV** (Computer Vision)
-*   **ZBar** (QR Code Reading)
-*   **SQLite3** (Database)

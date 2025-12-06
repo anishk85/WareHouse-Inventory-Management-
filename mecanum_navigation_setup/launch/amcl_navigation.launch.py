@@ -53,16 +53,6 @@ def generate_launch_description():
         launch_arguments={'use_sim_time': use_sim_time}.items()
     )
     
-    # ============================================================
-    # 2. ODOM→BASE_LINK TF (t=8s) - CRITICAL!
-    # ============================================================
-    # odom_tf_publisher = Node(
-    #     package='mecanum_gazebo',
-    #     executable='odom_tf_publisher.py',
-    #     name='odom_tf_publisher',
-    #     output='screen',
-    #     parameters=[{'use_sim_time': use_sim_time}]
-    # )
     ekf_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(mecanum_pkg, 'launch', 'ekf.launch.py')

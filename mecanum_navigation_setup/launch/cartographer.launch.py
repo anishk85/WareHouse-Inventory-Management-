@@ -34,6 +34,8 @@ def generate_launch_description():
     #     launch_arguments={'use_sim_time': LaunchConfiguration('use_sim_time')}.items()
     # )
     
+    
+    
     # 2. Cartographer Node (SLAM + sensor fusion + odom TF publishing)
     # NOW publishes both map→odom AND odom→base_link transforms
     # Launches at t=15s to allow Gazebo and controllers to stabilize

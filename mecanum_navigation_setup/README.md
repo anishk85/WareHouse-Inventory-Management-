@@ -129,7 +129,7 @@ python ~/inter_iit_ws/src/mecanum_navigation_setup/maps/updated_map_for_tape.py
 ```
 
 This creates the new_map.pgm which has bounds for tape
-Remember to update the 
+Remember to update the map.yaml inside 'cartographer_navigation.launch.py if not using tape bounds
 
 ### Important Topics
 

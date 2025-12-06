@@ -10,14 +10,10 @@ class WaypointLogger(Node):
         super().__init__('waypoint_logger')
         self.waypoints = []
         
-        # Define the output file path
-        # It will be saved in the directory where the node is executed
         self.output_filename = 'recorded_waypoints.yaml' 
         
-        # --- CRITICAL CHANGE ---
         self.custom_topic = '/recorded_pose'
         
-        # Create subscription
         self.subscription = self.create_subscription(
             PoseStamped,
             self.custom_topic,
@@ -44,7 +40,6 @@ class WaypointLogger(Node):
             'x': p.x, 
             'y': p.y, 
             'z': p.z,
-            # Storing orientation as a list of quaternion components
             'yaw_quat': [o.x, o.y, o.z, o.w]
         }
         
@@ -84,15 +79,12 @@ def main(args=None):
     logger = WaypointLogger()
     
     try:
-        # Spin until the user presses Ctrl+C
         rclpy.spin(logger)
         
     except KeyboardInterrupt:
-        # KeyboardInterrupt is caught when Ctrl+C is pressed
         pass
         
     finally:
-        # This function is called when the node is shut down
         logger.save_waypoints_to_file()
         logger.destroy_node()
         rclpy.shutdown()

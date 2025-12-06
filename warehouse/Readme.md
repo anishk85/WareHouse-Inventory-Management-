@@ -33,7 +33,7 @@ Custom ROS 2 message and service definitions for warehouse operations.
 
 
 ```bash
-ros2 launch mecanum_gazebo simualtion_world.launch.py
+ros2 launch mecanum_gazebo simulation_world.launch.py
 ```
 
 

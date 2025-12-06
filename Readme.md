@@ -143,19 +143,23 @@ Initiates the master node to begin the autonomous inventory scan.
 ros2 launch warehouse_rover_mission_control master_autonomous_warehouse.launch.py
 ```
 
-### Video Demonstration:
+## Demos and Results
 
-1. Real Hardware Mapping:
-![Hardware Mapping](./images/real_hardware_mapping.gif)
+<div align="center">
 
-2. Hardware Navigation:
-![Hardware Navigation](./images/navigation.gif)
+<h3>1. Real Hardware Mapping</h3>
+<img src="images/real_hardware_mapping.gif" width="70%" alt="Hardware Mapping"/>
 
-3. Z-Axis Movement:
-![Z-Axis Movement](./images/z-axis_hardware.gif)
+<h3>2. Hardware Navigation</h3>
+<img src="images/navigation.gif" width="70%" alt="Hardware Navigation"/>
 
-4. Obstacle Avoidance:
-![Obstacle Avoidance](./images/obstacle_avoid.gif)
+<h3>3. Z-Axis Movement</h3>
+<img src="images/z-axis_hardware.gif" width="70%" alt="Z-Axis Movement"/>
+
+<h3>4. Obstacle Avoidance</h3>
+<img src="images/obstacle_avoid.gif" width="70%" alt="Obstacle Avoidance"/>
+
+</div>
 
 
 

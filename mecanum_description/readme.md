@@ -172,10 +172,13 @@ Prioritizes command velocity sources:
   # Use RViz "Publish 2D goal" tool to record pose for each rack
   ```
 
-### 6. **`return_to_spawn.py`**
+### 2. **`return_to_spawn.py`**
 - **Purpose**: Resets robot to spawn position in simulation
-- **Use Case**: Quick reset during testing; Change teh spawn position in the code (Default should also work)
+- **Use Case**: Quick reset during testing; Change the spawn position in the code (Default should also work)
 
+### 2. **`rack_lidar_detection.py`**
+- **Purpose**: Detects the racks from the lidar scan
+- **Use Case**: To get rack positions from the lidar scans
 
 ## Configuration Files
 

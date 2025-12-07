@@ -24,6 +24,7 @@ class OpticalFlowSafetyNode(Node):
         self.MIN_AREA = self.get_parameter('min_area').get_parameter_value().integer_value
         self.angle_tolerance = self.get_parameter('angle_tolerance').get_parameter_value().integer_value
         self.show_debug_windows = self.get_parameter('show_debug_windows').get_parameter_value().bool_value
+        stop_topic = self.get_parameter('stop_topic').get_parameter_value().string_value
 
         # --- Class Members ---
         self.bridge = CvBridge()
@@ -34,7 +35,7 @@ class OpticalFlowSafetyNode(Node):
         self.image_sub = self.create_subscription(
             Image, video_topic, self.image_callback, 10
         )
-        self.collision_pub = self.create_publisher(Bool, '/z_axis/lateral_collide', 10)
+        self.collision_pub = self.create_publisher(Bool, stop_topic, 10)
 
         self.get_logger().info(f"Node initialized. Subscribed to {video_topic}")
         self.get_logger().info("Press 'q' in the OpenCV window to quit.")

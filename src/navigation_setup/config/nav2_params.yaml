@@ -194,7 +194,7 @@ local_costmap:
       height: 5
       resolution: 0.05
       # Robot footprint from URDF: wheelbase=0.25m, track=0.30m, with safety margin //need to update comment rest footprints are correct
-      footprint: "[[0.275, 0.21], [0.275, -0.21], [-0.275, -0.21], [-0.275, 0.21]]"
+      footprint: "[[0.30, 0.22], [0.30, -0.22], [-0.30, -0.22], [-0.30, 0.22]]"
       plugins: ["obstacle_layer", "inflation_layer"]
       transform_tolerance: 1.0
       
@@ -231,7 +231,7 @@ global_costmap:
       global_frame: map
       robot_base_frame: base_link
       # Robot footprint: wheelbase=0.25m, track=0.30m, with safety margin //need to update comment rest footprints are correct
-      footprint: "[[0.275, 0.21], [0.275, -0.21], [-0.275, -0.21], [-0.275, 0.21]]"
+      footprint: "[[0.30, 0.22], [0.30, -0.22], [-0.30, -0.22], [-0.30, 0.22]]"
       resolution: 0.05
       track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]

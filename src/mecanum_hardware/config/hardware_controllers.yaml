@@ -43,14 +43,11 @@ mecanum_drive_controller:
         y: 0.0
         theta: 0.0
       
-     
-      wheels_radius: 0.04
+      wheels_radius: 0.05  # 5cm radius wheels
       
-      # Sum of lx + ly
-      # lx = 0.125 (X distance from center to wheel)
-      # ly = 0.15 (Y distance from center to wheel)
-      sum_of_robot_center_projection_on_X_Y_axis: 0.275
-    
+      # Calculation: lx (0.125) + ly (0.195)
+      # Adjust lx if your wheelbase is different from 25cm
+      sum_of_robot_center_projection_on_X_Y_axis: 0.320
     # TF configuration
     tf_frame_prefix_enable: false
     tf_frame_prefix: ""

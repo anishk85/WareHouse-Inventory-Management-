@@ -11,6 +11,7 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(warehouse_rover_msgs REQUIRED)
+find_package(image_transport REQUIRED)
 find_package(warehouse_rover_qr_detection REQUIRED)
 
 # OpenCV with optional CUDA
@@ -66,8 +67,25 @@ ament_target_dependencies(qr_detector_enhanced_node
   rclcpp
   sensor_msgs
   cv_bridge
+  image_transport
   warehouse_rover_msgs
   warehouse_rover_qr_detection
+)
+add_executable(bridge_node
+  src/camera_bridge.cpp
+)
+
+ament_target_dependencies(bridge_node
+  rclcpp
+  sensor_msgs
+  cv_bridge
+  image_transport
+  warehouse_rover_msgs
+  OpenCV
+)
+
+target_link_libraries(bridge_node
+  ${OpenCV_LIBRARIES}
 )
 
 target_link_libraries(qr_detector_enhanced_node
@@ -93,6 +111,7 @@ install(TARGETS
   hardware_detector_lib
   image_preprocessor_lib
   qr_detector_enhanced_node
+  bridge_node
   hardware_info_tool
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib

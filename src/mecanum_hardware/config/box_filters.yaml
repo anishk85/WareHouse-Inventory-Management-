@@ -1,0 +1,20 @@
+scan_to_scan_filter_chain:
+  ros__parameters:
+    filter_chain:
+      - name: robot_body_filter
+        type: laser_filters/LaserScanBoxFilter
+        params:
+          box_frame: base_link
+          # Robot Length: 60cm -> 0.30m + 1cm padding
+          max_x: 0.31
+          min_x: -0.31
+          
+          # Robot Width: 44cm -> 0.22m + 1cm padding
+          max_y: 0.23
+          min_y: -0.23
+          
+          # Height: Covers the lift going up/down
+          max_z: 1.0
+          min_z: -0.5
+          
+          invert: false

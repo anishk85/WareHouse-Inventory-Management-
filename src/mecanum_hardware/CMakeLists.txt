@@ -65,6 +65,8 @@ install(PROGRAMS
   scripts/magnetometer_publisher_node.py
   scripts/quick_serial_check.py
   scripts/joystick_teleop.py
+  scripts/actuator_control_node.py
+  scripts/laser_sensor.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

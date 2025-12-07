@@ -8,7 +8,6 @@ This package provides the **ros2_control** hardware interface for controlling a 
 - 4× NEMA23 stepper motors
 - 2× ESP32 microcontrollers (serial communication)
 - IMU sensor (I2C connection)
-- Sensor fusion (70% IMU, 30% wheel odometry)
 
 ## Package Structure
 
@@ -367,7 +366,6 @@ i2cdetect -y 1     # Verify detection
 **Solution**: 
 1. Enable IMU fusion: `use_imu: true` in URDF
 2. Calibrate IMU orientation
-3. Tune IMU fusion weight (default 70% IMU, 30% wheels)
 
 ### Problem: Nav2 doesn't start
 **Solution**: Increase launch delays if Cartographer isn't ready
@@ -375,13 +373,6 @@ i2cdetect -y 1     # Verify detection
 # In hardware_navigation.launch.py
 TimerAction(period=12.0, ...)  # Increase from 12s to 15s
 ```
-
-## Related Documentation
-
-- [HARDWARE_SETUP.md](../../HARDWARE_SETUP.md) - Complete setup guide
-- [ARCHITECTURE.md](../../ARCHITECTURE.md) - System architecture
-- [CARTOGRAPHER_CONFIGS.md](../../CARTOGRAPHER_CONFIGS.md) - Cartographer strategy
-- [DEPLOYMENT_CHECKLIST.md](../../DEPLOYMENT_CHECKLIST.md) - Step-by-step deployment
 
 ## Dependencies
 

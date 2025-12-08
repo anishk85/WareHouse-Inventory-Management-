@@ -66,7 +66,12 @@ install(PROGRAMS
   scripts/quick_serial_check.py
   scripts/joystick_teleop.py
   scripts/actuator_control_node.py
+  scripts/actuator_pid_control_node.py
   scripts/laser_sensor.py
+  scripts/waypoint_follower_node.py
+  scripts/nav2_waypoint_follower.py
+  scripts/teleop_with_waypoint_save.py
+  scripts/ros2_web_bridge.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

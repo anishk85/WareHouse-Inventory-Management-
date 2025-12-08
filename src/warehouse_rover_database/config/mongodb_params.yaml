@@ -1,0 +1,21 @@
+# MongoDB Configuration for Warehouse Rover Inventory System
+
+inventory_node_mongo:
+  ros__parameters:
+    # MongoDB Atlas Connection
+    # Format: mongodb+srv://<username>:<password>@<cluster>.mongodb.net/
+    # Leave empty to use MONGODB_CONNECTION_STRING environment variable
+    mongodb_connection_string: ""
+    
+    # Database name
+    database_name: "warehouse_rover"
+    
+    # Auto-export mission data on shutdown
+    auto_export: true
+    
+    # Directory for JSON exports
+    export_dir: "/tmp/inventory_exports"
+    
+    # Use local MongoDB instead of Atlas (for testing)
+    # Set to true if running local MongoDB on localhost:27017
+    use_local_mongodb: false

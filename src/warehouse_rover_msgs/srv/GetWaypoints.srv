@@ -1,0 +1,11 @@
+# Service to get saved waypoints
+
+string waypoint_name    # Empty string returns all waypoints
+---
+bool success
+string message
+string[] waypoint_names
+float64[] x_positions
+float64[] y_positions
+float64[] yaw_orientations
+string[] waypoint_types

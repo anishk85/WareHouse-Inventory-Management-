@@ -5,9 +5,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     pkg_dir = get_package_share_directory('warehouse_rover_database')
-    params_file = os.path.join(pkg_dir, 'config', 'database_params.yaml')
-    rack_map_file = os.path.join(pkg_dir, 'config', 'rack_map.yaml')
-    
+        
     inventory_node = Node(
         package='warehouse_rover_database',
         executable='inventory_node',

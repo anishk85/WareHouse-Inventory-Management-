@@ -1,221 +1,195 @@
 #!/usr/bin/env python3
-# filepath: /root/ros2_ws/src/mecanum_hardware/scripts/laser_sensor.py
+"""
+ROS2 Node for PRO RANGE-KL200-NPN Laser Distance Sensor
+Publishes distance measurements as sensor_msgs/Range
+
+Topic: /laser_distance (sensor_msgs/Range)
+"""
 
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Range
-from std_msgs.msg import Float32
-import gpiod
+import serial
+import struct
 import time
-import threading
 
-class LaserSensorNode(Node):
+
+class KL200LaserNode(Node):
     def __init__(self):
-        super().__init__('laser_sensor_node')
+        super().__init__('kl200_laser_sensor')
         
-        # GPIO pin configuration (BCM numbering)
-        self.TRIGGER_PIN = 23  # Yellow wire - Input to sensor (trigger)
-        self.ECHO_PIN = 17     # Blue wire - Output from sensor (echo)
+        # Declare parameters
+        self.declare_parameter('serial_port', '/dev/serial0')
+        self.declare_parameter('baud_rate', 9600)
+        self.declare_parameter('frame_id', 'laser_sensor')
+        self.declare_parameter('publish_rate', 20.0)  # Hz
+        self.declare_parameter('auto_upload_interval', 5)  # 500ms (5 x 100ms)
         
-        # Sensor specifications
-        self.MAX_DISTANCE = 2.0  # 2 meters max range
-        self.MIN_DISTANCE = 0.03  # 3 cm minimum range (typical for these sensors)
-        self.SPEED_OF_LIGHT = 343.0  # m/s (speed of sound, used for timing)
+        # Get parameters
+        port = self.get_parameter('serial_port').value
+        baudrate = self.get_parameter('baud_rate').value
+        self.frame_id = self.get_parameter('frame_id').value
+        publish_rate = self.get_parameter('publish_rate').value
+        upload_interval = self.get_parameter('auto_upload_interval').value
         
-        # Timeout for echo (if no response in 100ms, consider it out of range)
-        self.TIMEOUT = 0.1  # 100ms timeout
-        
-        # Initialize GPIO using gpiod
+        # Initialize serial connection
         try:
-            self.chip = gpiod.Chip('gpiochip0')
-            
-            # Get lines
-            self.trigger_line = self.chip.get_line(self.TRIGGER_PIN)
-            self.echo_line = self.chip.get_line(self.ECHO_PIN)
-            
-            # Configure trigger as output (starts LOW)
-            self.trigger_line.request(
-                consumer="laser_trigger",
-                type=gpiod.LINE_REQ_DIR_OUT,
-                flags=gpiod.LINE_REQ_FLAG_BIAS_PULL_DOWN,
-                default_vals=[0]
+            self.ser = serial.Serial(
+                port=port,
+                baudrate=baudrate,
+                bytesize=serial.EIGHTBITS,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                timeout=1
             )
-            
-            # Configure echo as input with pull-down
-            self.echo_line.request(
-                consumer="laser_echo",
-                type=gpiod.LINE_REQ_DIR_IN,
-                flags=gpiod.LINE_REQ_FLAG_BIAS_PULL_DOWN
-            )
-            
-            # Ensure trigger is LOW
-            self.trigger_line.set_value(0)
             time.sleep(0.1)
-            
-            self.get_logger().info('GPIO initialized successfully')
-            self.get_logger().info(f'Trigger Pin: GPIO{self.TRIGGER_PIN}')
-            self.get_logger().info(f'Echo Pin: GPIO{self.ECHO_PIN}')
-            
-        except Exception as e:
-            self.get_logger().error(f'Failed to initialize GPIO: {e}')
+            self.get_logger().info(f'Serial port {port} opened at {baudrate} baud')
+        except serial.SerialException as e:
+            self.get_logger().error(f'Failed to open serial port: {e}')
             raise
         
-        # Create publishers
-        # Standard ROS Range message
-        self.range_pub = self.create_publisher(Range, 'laser/range', 10)
+        # Configure sensor for auto-upload mode
+        if self.configure_auto_upload(upload_interval):
+            self.get_logger().info(f'Configured auto-upload mode ({upload_interval*100}ms interval)')
+        else:
+            self.get_logger().warn('Failed to configure auto-upload, using manual query mode')
+            self.manual_mode = True
         
-        # Simple float distance in meters
-        self.distance_pub = self.create_publisher(Float32, 'laser/distance', 10)
+        # Create publisher
+        self.publisher = self.create_publisher(Range, 'laser_distance', 10)
         
-        # Measurement state
-        self.current_distance = 0.0
-        self.measurement_lock = threading.Lock()
+        # Create timer for publishing
+        timer_period = 1.0 / publish_rate
+        self.timer = self.create_timer(timer_period, self.timer_callback)
         
-        # Create timer for periodic measurements (10 Hz)
-        self.measurement_timer = self.create_timer(0.1, self.measure_distance)
+        # Statistics
+        self.measurement_count = 0
+        self.error_count = 0
         
-        self.get_logger().info('Laser Sensor Node initialized')
-        self.get_logger().info('Publishing to:')
-        self.get_logger().info('  - /laser/range (sensor_msgs/Range)')
-        self.get_logger().info('  - /laser/distance (std_msgs/Float32)')
-        self.get_logger().info('')
-        self.get_logger().info('Sensor Range: 0.03m to 2.0m')
-        self.get_logger().info('Measurement Rate: 10 Hz')
-        
-    def trigger_measurement(self):
-        """Send trigger pulse to sensor (10us HIGH pulse)"""
-        try:
-            # Send 10 microsecond pulse
-            self.trigger_line.set_value(0)
-            time.sleep(0.000002)  # 2us LOW
-            self.trigger_line.set_value(1)
-            time.sleep(0.00001)   # 10us HIGH
-            self.trigger_line.set_value(0)
-        except Exception as e:
-            self.get_logger().error(f'Trigger error: {e}')
+        self.get_logger().info('KL200 Laser Sensor Node initialized')
+        self.get_logger().info(f'Publishing on topic: laser_distance at {publish_rate} Hz')
     
-    def wait_for_echo(self):
-        """Wait for echo pulse and measure duration"""
-        try:
-            # Wait for echo to go HIGH (start of pulse)
-            timeout_start = time.time()
-            while self.echo_line.get_value() == 0:
-                pulse_start = time.time()
-                if (pulse_start - timeout_start) > self.TIMEOUT:
-                    return -1  # Timeout waiting for pulse start
-            
-            # Wait for echo to go LOW (end of pulse)
-            timeout_start = time.time()
-            while self.echo_line.get_value() == 1:
-                pulse_end = time.time()
-                if (pulse_end - timeout_start) > self.TIMEOUT:
-                    return -1  # Timeout waiting for pulse end
-            
-            # Calculate pulse duration
-            pulse_duration = pulse_end - pulse_start
-            
-            # Convert to distance (time * speed / 2)
-            # For laser sensors, timing might be different than ultrasonic
-            # Adjust this formula based on sensor datasheet
-            distance = (pulse_duration * self.SPEED_OF_LIGHT) / 2.0
-            
-            return distance
-            
-        except Exception as e:
-            self.get_logger().error(f'Echo reading error: {e}')
-            return -1
+    def configure_auto_upload(self, interval_100ms):
+        """
+        Configure sensor to auto-upload distance data
+        interval_100ms: 1-100 (100ms to 10s intervals)
+        Command: 62 35 09 FF FF 00 [interval] 00 XOR
+        """
+        cmd = bytearray([0x62, 0x35, 0x09, 0xFF, 0xFF, 
+                        0x00, interval_100ms & 0xFF, 0x00])
+        
+        # Calculate XOR checksum
+        xor = 0
+        for b in cmd:
+            xor ^= b
+        cmd.append(xor)
+        
+        self.ser.write(cmd)
+        time.sleep(0.1)
+        
+        # Read ACK
+        if self.ser.in_waiting >= 9:
+            ack = self.ser.read(9)
+            return ack[7] == 0x66  # Success byte
+        return False
     
-    def measure_distance(self):
-        """Perform distance measurement and publish"""
-        try:
-            # Trigger measurement
-            self.trigger_measurement()
+    def read_distance(self):
+        """
+        Read distance from sensor in auto-upload mode
+        Returns distance in meters, or None if error
+        """
+        if self.ser.in_waiting >= 9:
+            data = self.ser.read(9)
             
-            # Small delay before reading echo
-            time.sleep(0.00001)  # 10us
-            
-            # Read distance
-            distance = self.wait_for_echo()
-            
-            if distance > 0 and self.MIN_DISTANCE <= distance <= self.MAX_DISTANCE:
-                with self.measurement_lock:
-                    self.current_distance = distance
+            # Verify checksum
+            if len(data) == 9:
+                xor_check = data[0]
+                for i in range(1, 8):
+                    xor_check ^= data[i]
                 
-                # Publish Range message
-                range_msg = Range()
-                range_msg.header.stamp = self.get_clock().now().to_msg()
-                range_msg.header.frame_id = 'laser_sensor_link'
-                range_msg.radiation_type = Range.INFRARED  # Laser is infrared
-                range_msg.field_of_view = 0.05  # ~3 degrees typical for laser sensors
-                range_msg.min_range = float(self.MIN_DISTANCE)
-                range_msg.max_range = float(self.MAX_DISTANCE)
-                range_msg.range = float(distance)
-                self.range_pub.publish(range_msg)
+                if xor_check == data[8]:
+                    # Extract distance (bytes 5-6, big endian)
+                    distance_mm = struct.unpack('>H', data[5:7])[0]
+                    # Convert mm to meters
+                    return distance_mm / 1000.0
+                else:
+                    self.error_count += 1
+                    self.get_logger().debug('Checksum error')
+        return None
+    
+    def manual_query(self, address=0xFFFF):
+        """
+        Manually request distance reading
+        Send command: 62 33 09 FF FF 00 00 00 XOR
+        """
+        cmd = bytearray([0x62, 0x33, 0x09, 
+                        (address >> 8) & 0xFF, address & 0xFF,
+                        0x00, 0x00, 0x00])
+        
+        # Calculate XOR checksum
+        xor = 0
+        for b in cmd:
+            xor ^= b
+        cmd.append(xor)
+        
+        self.ser.write(cmd)
+        time.sleep(0.05)
+        
+        return self.read_distance()
+    
+    def timer_callback(self):
+        """Timer callback to read sensor and publish Range message"""
+        distance = self.read_distance()
+        
+        if distance is not None:
+            # Check if in valid range (0.01m - 4.0m)
+            if 0.01 <= distance <= 4.0:
+                msg = Range()
+                msg.header.stamp = self.get_clock().now().to_msg()
+                msg.header.frame_id = self.frame_id
                 
-                # Publish simple distance
-                distance_msg = Float32()
-                distance_msg.data = float(distance)
-                self.distance_pub.publish(distance_msg)
+                # Range message fields
+                msg.radiation_type = Range.INFRARED  # Laser is typically infrared
+                msg.field_of_view = 0.436  # ~25 degrees receive angle in radians
+                msg.min_range = 0.01  # 10mm in meters
+                msg.max_range = 4.0   # 4000mm in meters
+                msg.range = distance
                 
-                self.get_logger().info(
-                    f'Distance: {distance*100:.1f} cm ({distance:.3f} m)',
-                    throttle_duration_sec=1.0  # Log once per second
-                )
-            elif distance > self.MAX_DISTANCE:
-                self.get_logger().warn(
-                    'Object out of range (>2m)',
-                    throttle_duration_sec=5.0
-                )
-            elif distance > 0:  # Less than min distance
-                self.get_logger().warn(
-                    f'Object too close (<3cm)',
-                    throttle_duration_sec=5.0
-                )
+                self.publisher.publish(msg)
+                self.measurement_count += 1
+                
+                # Log every 100 measurements
+                if self.measurement_count % 100 == 0:
+                    self.get_logger().info(
+                        f'Published {self.measurement_count} measurements, '
+                        f'{self.error_count} errors, '
+                        f'latest: {distance:.3f}m'
+                    )
             else:
-                self.get_logger().warn(
-                    'No echo received (timeout)',
-                    throttle_duration_sec=5.0
-                )
-                
-        except Exception as e:
-            self.get_logger().error(f'Measurement error: {e}')
+                self.get_logger().warn(f'Distance out of range: {distance:.3f}m')
     
-    def cleanup(self):
-        """Cleanup GPIO on shutdown"""
-        self.get_logger().info('Cleaning up GPIO...')
-        try:
-            self.trigger_line.set_value(0)
-            time.sleep(0.01)
-            
-            self.trigger_line.release()
-            self.echo_line.release()
-            self.chip.close()
-            
-            self.get_logger().info('GPIO cleanup complete')
-        except Exception as e:
-            self.get_logger().error(f'Cleanup error: {e}')
+    def destroy_node(self):
+        """Cleanup when node is destroyed"""
+        if hasattr(self, 'ser') and self.ser.is_open:
+            self.ser.close()
+            self.get_logger().info('Serial port closed')
+        super().destroy_node()
 
 
 def main(args=None):
     rclpy.init(args=args)
     
-    node = None
     try:
-        node = LaserSensorNode()
+        node = KL200LaserNode()
         rclpy.spin(node)
     except KeyboardInterrupt:
-        if node:
-            node.get_logger().info('Keyboard interrupt detected')
+        pass
     except Exception as e:
-        if node:
-            node.get_logger().error(f'Error: {e}')
-        else:
-            print(f'Failed to initialize node: {e}')
+        print(f'Error: {e}')
     finally:
-        if node:
-            node.cleanup()
+        if rclpy.ok():
             node.destroy_node()
-        rclpy.shutdown()
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':

@@ -1,0 +1,31 @@
+# Nav2 Waypoint Task Executor Configuration
+# 
+# This configures Nav2's waypoint_follower to execute tasks at each waypoint.
+# The task executor can pause navigation and execute custom actions.
+
+waypoint_follower:
+  ros__parameters:
+    # How long to wait for action server
+    action_server_result_timeout: 900.0  # 15 minutes
+    
+    # Stop at each waypoint
+    stop_on_failure: false
+    loop_rate: 20
+    
+    # Waypoint task executor plugin
+    # This plugin gets called at each waypoint
+    waypoint_task_executor_plugin: "wait_at_waypoint"
+    
+    # Plugin configurations
+    wait_at_waypoint:
+      plugin: "nav2_waypoint_follower::WaitAtWaypoint"
+      enabled: true
+      waypoint_pause_duration: 60000  # 60 seconds in milliseconds (for inventory task)
+
+# Example: If you want to use a custom task executor:
+# inventory_task_executor:
+#   plugin: "warehouse_rover::InventoryTaskExecutor"
+#   enabled: true
+#   scan_duration: 50.0
+#   lift_time: 5.0
+#   lower_time: 5.0

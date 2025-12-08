@@ -1,16 +1,21 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>warehouse_rover_database</name>
-  <version>0.1.0</version>
-  <description>Database storage for warehouse inventory</description>
-  <maintainer email="your_email@example.com">Your Name</maintainer>
+  <version>1.0.0</version>
+  <description>MongoDB Atlas-based database storage for warehouse inventory</description>
+  <maintainer email="your_email@example.com">Warehouse Rover Team</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
-  <depend>rclcpp</depend>
+  <!-- Python Dependencies -->
+  <depend>rclpy</depend>
   <depend>warehouse_rover_msgs</depend>
-  <depend>libsqlite3-dev</depend>
+  <exec_depend>python3-pymongo</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

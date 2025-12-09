@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Database, Trash2, Edit } from "lucide-react"
@@ -14,19 +14,47 @@ interface Record {
 }
 
 export default function DatabasePage() {
-  const [records, setRecords] = useState<Record[]>([
-    { id: "1", timestamp: "2025-01-20 14:32:45", missionId: "MISSION-001", type: "Telemetry", data: "Battery: 85%" },
-    { id: "2", timestamp: "2025-01-20 14:31:20", missionId: "MISSION-001", type: "Event", data: "Obstacle detected" },
-    {
-      id: "3",
-      timestamp: "2025-01-20 14:30:05",
-      missionId: "MISSION-001",
-      type: "Navigation",
-      data: "Waypoint reached",
-    },
-  ])
+  const [records, setRecords] = useState<Record[]>([])
 
   const [filter, setFilter] = useState("all")
+  const [loading, setLoading] = useState(false)
+  const [resource, setResource] = useState<'missions' | 'qr' | 'waypoints'>('missions')
+
+  useEffect(() => {
+    // Load initial sample or remote records when component mounts
+    fetchFromDb(resource)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function fetchFromDb(r: string) {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/database?resource=${r}`)
+      const json = await res.json()
+      if (json.ok && Array.isArray(json.rows)) {
+        // Map rows to UI records where possible
+        const mapped = json.rows.map((row: any, idx: number) => {
+          // Heuristic mapping
+          const id = row.id ?? row._id ?? String(idx + 1)
+          const timestamp = row.detected_at ?? row.started_at ?? row.created_at ?? new Date().toISOString()
+          const missionId = row.mission_id ?? row.missionid ?? 'N/A'
+          let type = 'Record'
+          if (r === 'missions') type = 'Mission'
+          if (r === 'qr') type = 'QR'
+          if (r === 'waypoints') type = 'Waypoint'
+          const data = JSON.stringify(row)
+          return { id: String(id), timestamp: String(timestamp), missionId: String(missionId), type, data }
+        })
+        setRecords(mapped)
+      } else {
+        setRecords([])
+      }
+    } catch (e) {
+      console.error('DB fetch error', e)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredRecords = records.filter((record) => {
     if (filter === "all") return true
@@ -42,6 +70,22 @@ export default function DatabasePage() {
       <div className="flex items-center gap-3">
         <Database className="text-secondary" size={32} />
         <h1 className="text-3xl font-bold neon-purple">Database Records</h1>
+      </div>
+
+      <div className="flex gap-2 items-center">
+        <select
+          aria-label="resource"
+          value={resource}
+          onChange={(e) => setResource(e.target.value as any)}
+          className="bg-background border px-3 py-2 rounded text-sm"
+        >
+          <option value="missions">Missions</option>
+          <option value="qr">QR Detections</option>
+          <option value="waypoints">Waypoints</option>
+        </select>
+        <Button onClick={() => fetchFromDb(resource)} disabled={loading}>
+          {loading ? 'Loading...' : 'Load from DB'}
+        </Button>
       </div>
 
       {/* Stats */}

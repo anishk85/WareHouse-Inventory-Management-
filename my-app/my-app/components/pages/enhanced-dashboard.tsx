@@ -587,7 +587,10 @@ export default function EnhancedDashboard() {
   }
 
   const handleActuatorControl = (command: 'up' | 'down' | 'stop') => {
+    console.log('[Actuator] Sending command:', command)
     send('actuator_command', { command })
+    // Also add visual feedback
+    setActuatorStatus(command === 'up' ? 'moving_up' : command === 'down' ? 'moving_down' : 'stopped')
   }
 
   return (

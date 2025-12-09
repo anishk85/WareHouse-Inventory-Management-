@@ -6,9 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Activity, AlertCircle, MapPin, Battery, Wifi, Server } from "lucide-react"
 import TelemetryChart from "@/components/telemetry-chart"
 import { useRealTime } from "@/components/real-time-provider"
-import { ThreeDRover } from "@/components/three-d-rover"
+import { RoverVisualization } from "@/components/rover-visualization"
 import { GSAPStatusIndicator } from "@/components/gsap-status-indicator"
-import { DetectionAnimation } from "@/components/detection-animation"
 
 export default function Dashboard() {
   const { isConnected, subscribe } = useRealTime()
@@ -21,7 +20,10 @@ export default function Dashboard() {
     systemLoad: 42,
   })
   const [robotStatus, setRobotStatus] = useState<"idle" | "active" | "error" | "warning">("active")
-  const [isDetecting, setIsDetecting] = useState(false)
+  const [robotPosition, setRobotPosition] = useState({ x: 0, y: 0, theta: 0 })
+  const [robotVelocity, setRobotVelocity] = useState({ linear: 0, angular: 0 })
+  const [liftHeight, setLiftHeight] = useState(0.3)
+  const [isScanning, setIsScanning] = useState(false)
 
   useEffect(() => {
     // Subscribe to telemetry updates from WebSocket
@@ -54,25 +56,47 @@ export default function Dashboard() {
   }, [isConnected])
 
   useEffect(() => {
-    // Simulate detection events
-    const detectionInterval = setInterval(() => {
-      setIsDetecting(true)
-      setTimeout(() => setIsDetecting(false), 2500)
+    // Simulate scanning and movement events
+    const scanInterval = setInterval(() => {
+      setIsScanning(true)
+      setTimeout(() => setIsScanning(false), 3000)
     }, 8000)
 
-    return () => clearInterval(detectionInterval)
+    // Simulate position changes
+    const posInterval = setInterval(() => {
+      setRobotPosition(prev => ({
+        x: prev.x + (Math.random() - 0.5) * 0.1,
+        y: prev.y + (Math.random() - 0.5) * 0.1,
+        theta: prev.theta + (Math.random() - 0.5) * 0.1
+      }))
+      setRobotVelocity({
+        linear: Math.random() * 0.5,
+        angular: (Math.random() - 0.5) * 0.3
+      })
+    }, 1000)
+
+    return () => {
+      clearInterval(scanInterval)
+      clearInterval(posInterval)
+    }
   }, [])
 
   return (
-    <div className="p-6 space-y-6" style={{ backgroundColor: "#0a0e0f" }}>
-      {/* 3D Robot Animation */}
+    <div className="p-4 md:p-6 space-y-6" style={{ backgroundColor: "#0a0e0f" }}>
+      {/* Rover Visualization */}
       <div
-        className="rounded-lg p-6 flex flex-col items-center gap-4 relative"
-        style={{ backgroundColor: "#0f1419", borderColor: "#00ff00", borderWidth: "1px" }}
+        className="rounded-lg p-4 md:p-6 flex flex-col items-center gap-4 relative"
+        style={{ backgroundColor: "#0f1419", borderColor: "#22d3ee", borderWidth: "1px" }}
       >
-        <h2 className="text-xl font-bold neon-green-glow">3D Rover Navigation System</h2>
-        <ThreeDRover />
-        <DetectionAnimation isDetecting={isDetecting} />
+        <h2 className="text-lg md:text-xl font-bold text-cyan-400">Rover Status</h2>
+        <RoverVisualization 
+          position={robotPosition}
+          velocity={robotVelocity}
+          liftHeight={liftHeight}
+          maxLiftHeight={1.5}
+          isMoving={robotVelocity.linear > 0.1}
+          scanActive={isScanning}
+        />
       </div>
 
       {/* Status Indicators */}

@@ -48,8 +48,8 @@ export function DetectionAnimation({ isDetecting }: DetectionAnimationProps) {
             ease: "back.out(1.7)",
           })
           .to(checkmark, {
-            scale: [1, 1.2, 1],
-            duration: 0.4,
+            scale: 1.2,
+            duration: 0.2,
             yoyo: true,
             repeat: 1,
           })

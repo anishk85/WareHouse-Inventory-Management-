@@ -46,6 +46,11 @@ class DepthPerceptionNode(Node):
             self.model = AutoModelForDepthEstimation.from_pretrained(model_id)
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
             self.model.to(self.device)
+            self.quantized_model = torch.quantization.quantize_dynamic(
+                                        self.model, 
+                                        {torch.nn.Linear},  # Layers to quantize
+                                        dtype=torch.qint8   # Target data type
+                                    )
             self.get_logger().info(f"Model loaded successfully on {self.device}.")
         except Exception as e:
             self.get_logger().error(f"Failed to load model: {e}")
@@ -68,7 +73,7 @@ class DepthPerceptionNode(Node):
         inputs = self.processor(images=small_frame, return_tensors="pt").to(self.device)
         
         with torch.no_grad():
-            outputs = self.model(**inputs)
+            outputs = self.quantized_model(**inputs)
             predicted_depth = outputs.predicted_depth
 
         prediction = torch.nn.functional.interpolate(

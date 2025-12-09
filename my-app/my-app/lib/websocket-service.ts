@@ -82,9 +82,10 @@ class WebSocketService {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       // Send as action format for ROS2 bridge
       const message = { action: type, ...payload as object }
+      console.log("[WS] Sending:", JSON.stringify(message))
       this.ws.send(JSON.stringify(message))
     } else {
-      console.warn("[v0] WebSocket is not connected")
+      console.warn("[WS] Not connected, cannot send:", type, payload)
     }
   }
 

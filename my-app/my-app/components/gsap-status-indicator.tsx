@@ -37,19 +37,17 @@ export function GSAPStatusIndicator({ status, label }: StatusIndicatorProps) {
       active: () => {
         // Fast pulsing with glow
         gsap.to(iconRef.current, {
-          scale: [1, 1.1, 1],
-          duration: 0.8,
+          scale: 1.1,
+          duration: 0.4,
           repeat: -1,
+          yoyo: true,
           ease: "power1.inOut",
         })
         gsap.to(iconRef.current, {
-          filter: [
-            "drop-shadow(0 0 12px rgba(0, 255, 136, 0.3))",
-            "drop-shadow(0 0 24px rgba(0, 255, 136, 0.7))",
-            "drop-shadow(0 0 12px rgba(0, 255, 136, 0.3))",
-          ],
-          duration: 0.8,
+          filter: "drop-shadow(0 0 24px rgba(0, 255, 136, 0.7))",
+          duration: 0.4,
           repeat: -1,
+          yoyo: true,
         })
       },
       error: () => {

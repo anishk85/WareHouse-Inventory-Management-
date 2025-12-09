@@ -40,7 +40,7 @@ def generate_launch_description():
     
     declared_arguments.append(DeclareLaunchArgument(
         'map',
-        default_value=os.path.join(navigation_setup_dir, 'maps', 'maps.yaml'),
+        default_value=os.path.join(navigation_setup_dir, 'maps', 'maps2.yaml'),
         description='Full path to the map YAML file'
     ))
     

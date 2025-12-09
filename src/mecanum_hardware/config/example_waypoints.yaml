@@ -1,0 +1,61 @@
+# Example Waypoints for Inventory Mission
+# Each waypoint represents a rack/shelf location to scan
+
+# Format:
+#   position: x, y, z in map frame
+#   orientation: quaternion (x, y, z, w) - direction robot faces at waypoint
+
+waypoints:
+  # Rack 1 - Aisle A
+  - position:
+      x: 1.0
+      y: 0.5
+      z: 0.0
+    orientation:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      w: 1.0
+    name: "Rack_A1"
+    
+  # Rack 2 - Aisle A  
+  - position:
+      x: 2.0
+      y: 0.5
+      z: 0.0
+    orientation:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      w: 1.0
+    name: "Rack_A2"
+    
+  # Rack 3 - Aisle B (rotated 180 degrees)
+  - position:
+      x: 2.0
+      y: 2.0
+      z: 0.0
+    orientation:
+      x: 0.0
+      y: 0.0
+      z: 1.0
+      w: 0.0
+    name: "Rack_B1"
+    
+  # Rack 4 - Aisle B
+  - position:
+      x: 1.0
+      y: 2.0
+      z: 0.0
+    orientation:
+      x: 0.0
+      y: 0.0
+      z: 1.0
+      w: 0.0
+    name: "Rack_B2"
+
+# Mission Configuration (optional metadata)
+mission_config:
+  name: "Warehouse Full Scan"
+  description: "Complete inventory scan of all racks"
+  estimated_time_minutes: 15

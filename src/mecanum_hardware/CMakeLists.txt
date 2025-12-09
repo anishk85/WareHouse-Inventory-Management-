@@ -59,8 +59,6 @@ install(
 
 # 4. Install Python Scripts 
 install(PROGRAMS
-  scripts/test_esp_connection.py
-  scripts/test_individual_motor.py
   scripts/imu_publisher_node.py
   scripts/magnetometer_publisher_node.py
   scripts/quick_serial_check.py
@@ -72,6 +70,8 @@ install(PROGRAMS
   scripts/nav2_waypoint_follower.py
   scripts/teleop_with_waypoint_save.py
   scripts/ros2_web_bridge.py
+  scripts/inventory_mission_node.py
+  scripts/height_monitor_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

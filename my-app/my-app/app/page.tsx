@@ -10,16 +10,27 @@ import WaypointCreator from "@/components/pages/waypoint-creator"
 import InventoryQR from "@/components/pages/inventory-qr"
 import Database from "@/components/pages/database"
 import SystemMonitor from "@/components/pages/system-monitor"
+import EnhancedDashboard from "@/components/pages/enhanced-dashboard"
 
-type PageType = "dashboard" | "launch" | "navigation" | "waypoint" | "inventory" | "database" | "monitor"
+type PageType =
+  | "dashboard"
+  | "launch"
+  | "navigation"
+  | "waypoint"
+  | "inventory"
+  | "database"
+  | "monitor"
+  | "control"
 
 function PageContent() {
-  const [currentPage, setCurrentPage] = useState<PageType>("launch")
+  const [currentPage, setCurrentPage] = useState<PageType>("control")
 
   const renderPage = () => {
     switch (currentPage) {
       case "dashboard":
         return <Dashboard />
+      case "control":
+        return <EnhancedDashboard />
       case "launch":
         return <ROS2LaunchControl />
       case "navigation":
@@ -33,7 +44,7 @@ function PageContent() {
       case "monitor":
         return <SystemMonitor />
       default:
-        return <Dashboard />
+        return <EnhancedDashboard />
     }
   }
 

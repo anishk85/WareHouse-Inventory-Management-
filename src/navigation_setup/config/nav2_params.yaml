@@ -120,64 +120,69 @@ bt_navigator_navigate_to_pose_rclcpp_node:
 controller_server:
   ros__parameters:
     use_sim_time: False
-    controller_frequency: 10.0
+    controller_frequency: 20.0                    # Increased for better responsiveness
     min_x_velocity_threshold: 0.001
-    min_y_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.001               # Important for mecanum lateral motion
     min_theta_velocity_threshold: 0.001
-    failure_tolerance: 0.5
+    failure_tolerance: 0.3
     progress_checker_plugin: "progress_checker"
-    goal_checker_plugins: ["general_goal_checker"]
+    goal_checker_plugins: ["precise_goal_checker"]
     controller_plugins: ["FollowPath"]
 
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.3
-      movement_time_allowance: 15.0
+      required_movement_radius: 0.1               # Tighter for precision
+      movement_time_allowance: 20.0
     
-    general_goal_checker:
+    # Precise goal checker for entering rooms
+    precise_goal_checker:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.20
-      yaw_goal_tolerance: 0.35
+      xy_goal_tolerance: 0.05                     # 5cm precision for room entry
+      yaw_goal_tolerance: 0.1                     # ~6 degrees orientation precision
     
-    # DWB controller optimized for mecanum drive
+    # DWB controller optimized for mecanum drive with higher velocity
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: False
-      min_vel_x: -0.20          
-      min_vel_y: -0.20          
-      max_vel_x: 2.20           
-      max_vel_y: 2.20           
-      max_vel_theta: 1.8       
+      # Mecanum can move in all directions - enable full omnidirectional motion
+      min_vel_x: -0.5                             # Reverse capability
+      min_vel_y: -0.5                             # Full lateral motion (mecanum advantage!)
+      max_vel_x: 0.8                              # Increased forward speed
+      max_vel_y: 0.5                              # Good lateral speed for mecanum
+      max_vel_theta: 1.5                          # Rotation speed
       min_speed_xy: 0.0
-      max_speed_xy: 0.20        
+      max_speed_xy: 0.8                           # Combined max speed
       min_speed_theta: 0.0
-      acc_lim_x: 1.5
-      acc_lim_y: 1.5
-      acc_lim_theta: 1.0
-      decel_lim_x: -1.5
-      decel_lim_y: -1.5
-      decel_lim_theta: -1.0
-      vx_samples: 15
-      vy_samples: 15
+      # Acceleration limits - tune based on your motors
+      acc_lim_x: 2.0                              # Increased acceleration
+      acc_lim_y: 2.0                              # Mecanum can accelerate laterally
+      acc_lim_theta: 2.5
+      decel_lim_x: -2.5                           # Faster deceleration for precision stops
+      decel_lim_y: -2.5
+      decel_lim_theta: -2.5
+      # Trajectory sampling - more samples = better paths but slower
+      vx_samples: 20
+      vy_samples: 20                              # Important for mecanum - sample Y velocities
       vtheta_samples: 20
-      sim_time: 2.0
+      sim_time: 1.5                               # How far ahead to simulate
       linear_granularity: 0.05
       angular_granularity: 0.025
-      transform_tolerance: 1.0
-      xy_goal_tolerance: 0.20
-      trans_stopped_velocity: 0.15
+      transform_tolerance: 0.5
+      xy_goal_tolerance: 0.05                     # Match goal checker
+      trans_stopped_velocity: 0.05                # Lower threshold for "stopped"
       short_circuit_trajectory_evaluation: True
       stateful: True
+      # Critics for trajectory scoring - tuned for precision navigation
       critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-      BaseObstacle.scale: 0.05
-      PathAlign.scale: 20.0
-      PathAlign.forward_point_distance: 0.2
-      GoalAlign.scale: 20.0
-      GoalAlign.forward_point_distance: 0.2
-      PathDist.scale: 32.0
-      GoalDist.scale: 20.0
-      RotateToGoal.scale: 32.0
+      BaseObstacle.scale: 0.02                    # Lower = less obstacle avoidance aggression
+      PathAlign.scale: 32.0                       # Higher = follow path more closely
+      PathAlign.forward_point_distance: 0.3
+      GoalAlign.scale: 24.0                       # Align well with goal orientation
+      GoalAlign.forward_point_distance: 0.3
+      PathDist.scale: 32.0                        # Stay close to path
+      GoalDist.scale: 24.0                        # Drive toward goal
+      RotateToGoal.scale: 32.0                    # Rotate to final orientation
       RotateToGoal.slowing_factor: 5.0
       RotateToGoal.lookahead_time: -1.0
 
@@ -217,8 +222,8 @@ local_costmap:
           
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0
-        inflation_radius: 0.35
+        cost_scaling_factor: 5.0                  # Higher = costs drop off faster from obstacles
+        inflation_radius: 0.25                    # Reduced for tighter spaces (room entry)
       
       always_send_full_costmap: True
 
@@ -259,33 +264,33 @@ global_costmap:
           
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0
-        inflation_radius: 0.35
+        cost_scaling_factor: 5.0                  # Higher = costs drop off faster
+        inflation_radius: 0.25                    # Reduced for room entry
         
       always_send_full_costmap: True
 
 map_server:
   ros__parameters:
     use_sim_time: False
-    yaml_filename: "/root/ros2_ws/src/navigation_setup/maps/maps.yaml"
+    yaml_filename: "/root/ros2_ws/src/navigation_setup/maps/maps2.yaml"
     #add params in launch file to set this 
 
 planner_server:
   ros__parameters:
     use_sim_time: False
-    expected_planner_frequency: 5.0
+    expected_planner_frequency: 10.0              # Faster replanning
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_smac_planner/SmacPlanner2D" 
-      tolerance: 0.5
+      tolerance: 0.125                            # Tighter tolerance for precision
       downsample_costmap: false 
       allow_unknown: true
       max_iterations: 1000000
       max_on_approach_iterations: 1000
-      max_planning_time: 2.0
-      motion_model_for_search: "DUBIN" #
+      max_planning_time: 3.0
+      motion_model_for_search: "MOORE"            # 8-connected grid - better for omnidirectional
       cost_travel_multiplier: 2.0
-      use_final_approach_orientation: true
+      use_final_approach_orientation: true        # Important for entering rooms correctly
       smoother:
         max_iterations: 1000
         w_smooth: 0.3
@@ -325,11 +330,11 @@ behavior_server:
     local_frame: odom
     global_frame: map
     robot_base_frame: base_link
-    transform_tolerance: 1.0
+    transform_tolerance: 0.5
     simulate_ahead_time: 2.0
-    max_rotational_vel: 0.8
-    min_rotational_vel: 0.2
-    rotational_acc_lim: 1.0
+    max_rotational_vel: 1.5                       # Increased for mecanum
+    min_rotational_vel: 0.3
+    rotational_acc_lim: 2.5                       # Increased acceleration
 
 waypoint_follower:
   ros__parameters:
@@ -348,10 +353,10 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [1.20, 1.20, 1.0]
-    min_velocity: [-0.20, -0.20, -1.0]
-    max_accel: [1.0, 1.0, 1.5]
-    max_decel: [-1.0, -1.0, -1.5]
+    max_velocity: [0.8, 0.5, 1.5]                 # [x, y, theta] - match controller limits
+    min_velocity: [-0.5, -0.5, -1.5]              # Full reverse and lateral
+    max_accel: [2.0, 2.0, 2.5]                    # Match controller acceleration
+    max_decel: [-2.5, -2.5, -2.5]                 # Match controller deceleration
     odom_topic: "/odom"
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]

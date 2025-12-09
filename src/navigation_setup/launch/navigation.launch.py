@@ -19,7 +19,7 @@ def generate_launch_description():
     # File paths
     nav2_params_file = os.path.join(navigation_setup_dir, 'config', 'nav2_params.yaml')
     rviz_config_file = os.path.join(navigation_setup_dir, 'rviz', 'nav2.rviz')
-    map_file = os.path.join(navigation_setup_dir, 'maps', 'map.yaml')
+    map_file = os.path.join(navigation_setup_dir, 'maps', 'maps2.yaml')
     
     # Launch configuration variables
     namespace = LaunchConfiguration('namespace')

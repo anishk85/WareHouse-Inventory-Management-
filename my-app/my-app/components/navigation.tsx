@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Menu, X, Radio } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-type PageType = "dashboard" | "launch" | "navigation" | "waypoint" | "inventory" | "database" | "monitor"
+type PageType = "dashboard" | "launch" | "navigation" | "waypoint" | "inventory" | "database" | "monitor" | "control"
 
 interface NavigationProps {
   currentPage: PageType
@@ -12,6 +12,7 @@ interface NavigationProps {
 }
 
 const navItems: { id: PageType; label: string; icon: string }[] = [
+  { id: "control", label: "Control Panel", icon: "🎮" },
   { id: "dashboard", label: "Dashboard", icon: "📡" },
   { id: "launch", label: "Launch Control", icon: "🚀" },
   { id: "navigation", label: "Navigation", icon: "🗺️" },

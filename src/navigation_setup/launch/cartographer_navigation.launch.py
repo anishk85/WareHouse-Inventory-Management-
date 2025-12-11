@@ -6,11 +6,12 @@ from launch.actions import (
     IncludeLaunchDescription,
     TimerAction,
     LogInfo,
+    GroupAction,
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 
-from launch_ros.actions import Node
+from launch_ros.actions import Node, SetRemap
 
 def generate_launch_description():
     # ============================================================
@@ -100,17 +101,24 @@ def generate_launch_description():
     # ============================================================
     # 5. NAV2 NAVIGATION (PLANNERS + CONTROLLERS) (t=18s)
     # ============================================================
-    nav2_navigation = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(nav2_bringup_pkg, 'launch', 'navigation_launch.py')
-        ),
-        launch_arguments={
-            'use_sim_time': use_sim_time,
-            'params_file': nav2_params,
-            'autostart': 'true',
-            'use_map_server': 'false',  # AMCL is loading the map already
-            'use_amcl': 'false',        # AMCL is launched separately
-        }.items()
+    nav2_navigation = GroupAction(
+        actions=[
+            # Remap cmd_vel from the controller to cmd_vel_nav
+            SetRemap(src='cmd_vel', dst='cmd_vel_nav'),
+            
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    os.path.join(nav2_bringup_pkg, 'launch', 'navigation_launch.py')
+                ),
+                launch_arguments={
+                    'use_sim_time': use_sim_time,
+                    'params_file': nav2_params,
+                    'autostart': 'true',
+                    'use_map_server': 'false',  # AMCL is loading the map already
+                    'use_amcl': 'false',        # AMCL is launched separately
+                }.items()
+            )
+        ]
     )
 
     # ============================================================

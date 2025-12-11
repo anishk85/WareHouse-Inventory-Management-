@@ -41,7 +41,7 @@ amcl:
     z_max: 0.05
     z_rand: 0.5
     z_short: 0.05
-    scan_topic: scan
+    scan_topic: /scan_filtered
 
 bt_navigator:
   ros__parameters:
@@ -199,15 +199,15 @@ controller_server:
       PathAlignCritic:
         enabled: true
         cost_power: 1
-        cost_weight: 8.0                # High = stick to global path
+        cost_weight: 5.0                # Reduced for more local flexibility
         max_path_occupancy_ratio: 0.07
         trajectory_point_step: 3
         
       PathFollowCritic:
         enabled: true
         cost_power: 1
-        cost_weight: 10.0               # Very high = follow path closely
-        offset_from_path: 0.5
+        cost_weight: 7.0               # Reduced for more local flexibility
+        # offset_from_path: 0.5
         
       # Motion model - OMNI for mecanum
       motion_model: "Omni"              # Perfect for your mecanum drive!
@@ -245,7 +245,7 @@ local_costmap:
         observation_sources: scan
         
         scan:
-          topic: /scan
+          topic: /scan_filtered
           data_type: "LaserScan"
           marking: true
           clearing: true
@@ -288,7 +288,7 @@ global_costmap:
         observation_sources: scan
         
         scan:
-          topic: /scan
+          topic: /scan_filtered
           data_type: "LaserScan"
           marking: True
           clearing: True
@@ -401,7 +401,7 @@ collision_monitor:
     use_sim_time: False
     base_frame_id: "base_link"
     odom_frame_id: "odom"
-    cmd_vel_in_topic: "cmd_vel_supervised"
+    cmd_vel_in_topic: "cmd_vel_nav"
     cmd_vel_out_topic: "cmd_vel"
     state_topic: "collision_monitor_state"
     transform_tolerance: 0.5
@@ -427,7 +427,7 @@ collision_monitor:
     observation_sources: ["scan"]
     scan:
       type: "scan"
-      topic: "/scan"
+      topic: "/scan_filtered"
       source_timeout: 0.2
 
 lifecycle_manager_localization:

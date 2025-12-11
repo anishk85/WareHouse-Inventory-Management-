@@ -7,11 +7,12 @@ from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
     IncludeLaunchDescription,
-    TimerAction
+    TimerAction,
+    GroupAction,
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import Node
+from launch_ros.actions import Node, SetRemap
 
 
 def generate_launch_description():
@@ -50,17 +51,24 @@ def generate_launch_description():
     )
     
     # 3. Nav2 Bringup with STVL config (includes depth camera obstacle layer)
-    nav2_bringup = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(nav2_bringup_dir, 'launch', 'bringup_launch.py')
-        ),
-        launch_arguments={
-            'use_sim_time': 'True',
-            'autostart': 'true',
-            'params_file': nav2_params_file,
-            'map': map_file,
-            'use_respawn': 'False'
-        }.items()
+    nav2_bringup = GroupAction(
+        actions=[
+            # Remap cmd_vel from the controller to cmd_vel_nav
+            SetRemap(src='cmd_vel', dst='cmd_vel_nav'),
+
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    os.path.join(nav2_bringup_dir, 'launch', 'bringup_launch.py')
+                ),
+                launch_arguments={
+                    'use_sim_time': 'True',
+                    'autostart': 'true',
+                    'params_file': nav2_params_file,
+                    'map': map_file,
+                    'use_respawn': 'False'
+                }.items()
+            )
+        ]
     )
     
     # 4. RViz with STVL visualization

@@ -8,7 +8,7 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, Grou
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PythonExpression
-from launch_ros.actions import Node, PushRosNamespace
+from launch_ros.actions import Node, PushRosNamespace, SetRemap
 
 
 def generate_launch_description():
@@ -86,6 +86,8 @@ def generate_launch_description():
             condition=IfCondition(PythonExpression(["'", namespace, "' != ''"])),
             namespace=namespace),
         
+        SetRemap(src='cmd_vel', dst='cmd_vel_nav'),
+
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(nav2_bringup_dir, 'launch', 'bringup_launch.py')

@@ -20,6 +20,7 @@ def generate_launch_description():
     nav2_params_file = os.path.join(navigation_setup_dir, 'config', 'nav2_params.yaml')
     rviz_config_file = os.path.join(navigation_setup_dir, 'rviz', 'nav2.rviz')
     map_file = os.path.join(navigation_setup_dir, 'maps', 'maps2.yaml')
+    laser_filter_config = os.path.join(navigation_setup_dir, 'maps', 'box_filters.yaml') # Path to box filter config
     
     # Launch configuration variables
     namespace = LaunchConfiguration('namespace')
@@ -78,6 +79,22 @@ def generate_launch_description():
         'log_level',
         default_value='info',
         description='log level'
+    )
+    
+    # LASER FILTER (t=0s) - Added to filter self-collisions
+    laser_filter_node = Node(
+        package='laser_filters',
+        executable='scan_to_scan_filter_chain',
+        name='laser_filter',
+        output='screen',
+        parameters=[
+            laser_filter_config,
+            {'use_sim_time': use_sim_time}
+        ],
+        remappings=[
+            ('scan', '/scan'),
+            ('scan_filtered', '/scan_filtered')
+        ]
     )
     
     # Nav2 bringup

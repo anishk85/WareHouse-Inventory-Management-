@@ -26,6 +26,7 @@ def generate_launch_description():
     cartographer_config_dir = os.path.join(nav_pkg, 'config')
     rviz_config = os.path.join(nav_pkg, 'rviz', 'nav2.rviz')
     map_yaml = os.path.join(nav_pkg, 'maps', 'maps.yaml') # ADDED: Path to static map file
+    laser_filter_config = os.path.join(nav_pkg, 'maps', 'box_filters.yaml') # Path to box filter config
     
     # Launch Args
     use_sim_time = LaunchConfiguration('use_sim_time')
@@ -47,7 +48,25 @@ def generate_launch_description():
     )
     
     # ============================================================
-    # 2. CMD_VEL BRIDGE (t=5s)
+    # 2. LASER FILTER (t=0s) - Added to filter self-collisions
+    # ============================================================
+    laser_filter_node = Node(
+        package='laser_filters',
+        executable='scan_to_scan_filter_chain',
+        name='laser_filter',
+        output='screen',
+        parameters=[
+            laser_filter_config,
+            {'use_sim_time': use_sim_time}
+        ],
+        remappings=[
+            ('scan', '/scan'),
+            ('scan_filtered', '/scan_filtered')
+        ]
+    )
+    
+    # ============================================================
+    # 3. CMD_VEL BRIDGE (t=5s)
     # ============================================================
     cmd_vel_bridge = Node(
         package='mecanum_in_gazebo',
@@ -62,7 +81,7 @@ def generate_launch_description():
     )
     
     # ============================================================
-    # 3. CARTOGRAPHER AS ODOMETRY SOURCE (t=8s)
+    # 4. CARTOGRAPHER AS ODOMETRY SOURCE (t=8s)
     #    Publishes odom->base_link
     # ============================================================
     cartographer_node = Node(
@@ -83,7 +102,7 @@ def generate_launch_description():
     )
     
     # ============================================================
-    # 4. NAV2 LOCALIZATION (AMCL + MAP SERVER) (t=15s)
+    # 5. NAV2 LOCALIZATION (AMCL + MAP SERVER) (t=15s)
     #    Publishes map->odom
     # ============================================================
     nav2_localization = IncludeLaunchDescription(
@@ -99,7 +118,7 @@ def generate_launch_description():
     )
     
     # ============================================================
-    # 5. NAV2 NAVIGATION (PLANNERS + CONTROLLERS) (t=18s)
+    # 6. NAV2 NAVIGATION (PLANNERS + CONTROLLERS) (t=18s)
     # ============================================================
     nav2_navigation = GroupAction(
         actions=[
@@ -122,7 +141,7 @@ def generate_launch_description():
     )
 
     # ============================================================
-    # 6. RVIZ (t=20s)
+    # 7. RVIZ (t=20s)
     # ============================================================
     rviz_node = Node(
         package='rviz2',

@@ -27,6 +27,7 @@ def generate_launch_description():
     nav2_params = os.path.join(nav_pkg, 'config', 'nav2_params.yaml')
     map_file = os.path.join(nav_pkg, 'maps', 'maps.yaml')
     rviz_config = os.path.join(nav_pkg, 'rviz', 'nav2.rviz')
+    laser_filter_config = os.path.join(nav_pkg, 'maps', 'box_filters.yaml') # Path to box filter config
     
     # Launch arguments
     use_sim_time = LaunchConfiguration('use_sim_time')
@@ -55,7 +56,25 @@ def generate_launch_description():
     )
     
     # ============================================================
-    # 2. ODOM→BASE_LINK TF (t=8s) - CRITICAL!
+    # 2. LASER FILTER (t=0s) - Added to filter self-collisions
+    # ============================================================
+    laser_filter_node = Node(
+        package='laser_filters',
+        executable='scan_to_scan_filter_chain',
+        name='laser_filter',
+        output='screen',
+        parameters=[
+            laser_filter_config,
+            {'use_sim_time': use_sim_time}
+        ],
+        remappings=[
+            ('scan', '/scan'),
+            ('scan_filtered', '/scan_filtered')
+        ]
+    )
+    
+    # ============================================================
+    # 3. ODOM→BASE_LINK TF (t=8s) - CRITICAL!
     # ============================================================
     # odom_tf_publisher = Node(
     #     package='mecanum_in_gazebo',
@@ -70,7 +89,7 @@ def generate_launch_description():
         )
     )
     # ============================================================
-    # 3. CMD_VEL BRIDGE (t=8s)
+    # 4. CMD_VEL BRIDGE (t=8s)
     # ============================================================
     cmd_vel_bridge = Node(
         package='mecanum_in_gazebo',
@@ -85,7 +104,7 @@ def generate_launch_description():
     )
     
     # ============================================================
-    # 4. NAV2 LOCALIZATION (AMCL + MAP SERVER) (t=15s)
+    # 5. NAV2 LOCALIZATION (AMCL + MAP SERVER) (t=15s)
     # ============================================================
     nav2_localization = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -100,7 +119,7 @@ def generate_launch_description():
     )
     
     # ============================================================
-    # 5. NAV2 NAVIGATION (PLANNERS + CONTROLLERS) (t=18s)
+    # 6. NAV2 NAVIGATION (PLANNERS + CONTROLLERS) (t=18s)
     # ============================================================
     nav2_navigation = GroupAction(
         actions=[
@@ -121,7 +140,7 @@ def generate_launch_description():
     )
     
     # ============================================================
-    # 6. RVIZ (t=22s)
+    # 7. RVIZ (t=22s)
     # ============================================================
     rviz_node = Node(
         package='rviz2',

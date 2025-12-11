@@ -81,7 +81,19 @@ class WebSocketService {
   send(type: string, payload: unknown): void {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       // Send as action format for ROS2 bridge
-      const message = { action: type, ...payload as object }
+      let message: any = { action: type, ...payload as object }
+      
+      // Convert all numeric values to proper floats for ROS2
+      if (type === 'publish_cmd_vel') {
+        const data = payload as any
+        message = {
+          action: type,
+          linear_x: parseFloat(String(data.linear_x || 0)) || 0.0,
+          linear_y: parseFloat(String(data.linear_y || 0)) || 0.0,
+          angular_z: parseFloat(String(data.angular_z || 0)) || 0.0
+        }
+      }
+      
       console.log("[WS] Sending:", JSON.stringify(message))
       this.ws.send(JSON.stringify(message))
     } else {

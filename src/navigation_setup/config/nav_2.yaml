@@ -1,15 +1,15 @@
-# Nav2 Configuration - OPTIMIZED FOR RASPBERRY PI 4
+# Nav2 Configuration - DOORWAY NAVIGATION TUNED
 # Robot: 47cm width × 66cm length, Mecanum drive
-# Focus: Reliable navigation with CPU-efficient settings
+# Target: 90cm doorways with smooth curved paths
 
 amcl:
   ros__parameters:
     use_sim_time: False
-    alpha1: 0.1                                   # Trust Cartographer odometry more
-    alpha2: 0.1
-    alpha3: 0.1
-    alpha4: 0.1
-    alpha5: 0.1
+    alpha1: 0.2
+    alpha2: 0.2
+    alpha3: 0.2
+    alpha4: 0.2
+    alpha5: 0.2
     base_frame_id: "base_link"
     beam_skip_distance: 0.5
     beam_skip_error_threshold: 0.9
@@ -22,21 +22,21 @@ amcl:
     laser_min_range: -1.0
     laser_model_type: "likelihood_field"
     max_beams: 60
-    max_particles: 1500                           # REDUCED from 2000 (CPU save)
-    min_particles: 300                            # REDUCED from 500
+    max_particles: 1300
+    min_particles: 300
     odom_frame_id: "odom"
     pf_err: 0.05
     pf_z: 0.99
-    recovery_alpha_fast: 0.1                      # CHANGED from 0.0 for faster recovery
-    recovery_alpha_slow: 0.001                    # CHANGED from 0.0
+    recovery_alpha_fast: 0.0
+    recovery_alpha_slow: 0.0
     resample_interval: 1
     robot_model_type: "nav2_amcl::OmniMotionModel"
     save_pose_rate: 0.5
     sigma_hit: 0.2
     tf_broadcast: true
-    transform_tolerance: 0.5
-    update_min_a: 0.15                            # INCREASED from 0.1 (less frequent updates)
-    update_min_d: 0.15                            # REDUCED from 0.2 (more updates for tight spaces)
+    transform_tolerance: 1.0
+    update_min_a: 0.1
+    update_min_d: 0.2
     z_hit: 0.5
     z_max: 0.05
     z_rand: 0.5
@@ -118,123 +118,86 @@ bt_navigator_navigate_to_pose_rclcpp_node:
 controller_server:
   ros__parameters:
     use_sim_time: False
-    controller_frequency: 20.0  # Target (may achieve 15-18Hz with MPPI)
+    controller_frequency: 20.0
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.001
     min_theta_velocity_threshold: 0.001
-    failure_tolerance: 0.3
+    failure_tolerance: 0.5
     progress_checker_plugin: "progress_checker"
-    goal_checker_plugins: ["general_goal_checker"]
+    goal_checker_plugins: ["precise_goal_checker"]
     controller_plugins: ["FollowPath"]
     
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.3
-      movement_time_allowance: 30.0
+      required_movement_radius: 0.15              # Tighter tolerance
+      movement_time_allowance: 60.0               # More time for tight spaces
     
-    general_goal_checker:
+    precise_goal_checker:
+      stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.15
       yaw_goal_tolerance: 0.20
-      stateful: True
     
     FollowPath:
-      plugin: "nav2_mppi_controller::MPPIController"
-      
-      # Trajectory generation - TUNED FOR PI 5
-      time_steps: 50                    # Prediction horizon steps (lower for Pi5)
-      model_dt: 0.05                    # 50ms per step = 2.5s lookahead
-      batch_size: 2000                  # Trajectories per iteration (Pi5 can handle this)
-      iteration_count: 1                # Single iteration per cycle (CPU save)
-      
-      # Velocities - match your current setup
-      vx_min: -0.3
-      vx_max: 0.5
-      vy_min: -0.3
-      vy_max: 0.3
-      wz_max: 1.2
-      
-      # Acceleration limits
-      ax_max: 1.5
-      ay_max: 1.5
-      az_max: 2.0
-      
-      # Temperature parameter (controls exploration)
-      temperature: 0.3                  # Lower = more focused on best paths
-      
-      # Noise generation for trajectory sampling
-      sampling_std:
-        vx: 0.15
-        vy: 0.15
-        wz: 0.3
-      
-      # Cost function weights - CRITICAL TUNING
-      critics: ["ConstraintCritic", "ObstaclesCritic", "GoalCritic", "GoalAngleCritic", "PathAlignCritic", "PathFollowCritic"]
-      
-      ConstraintCritic:
-        enabled: true
-        cost_power: 1
-        cost_weight: 4.0
-      
-      GoalCritic:
-        enabled: true
-        cost_power: 1
-        cost_weight: 5.0                # High weight = prioritize reaching goal
-        threshold_to_consider: 1.0      # Start caring about goal within 1m
-      
-      GoalAngleCritic:
-        enabled: true
-        cost_power: 1
-        cost_weight: 3.0
-        threshold_to_consider: 0.5
-      
-      ObstaclesCritic:
-        enabled: true
-        cost_power: 1
-        cost_weight: 2.0                # Lower than DWB since MPPI has better prediction
-        inflation_radius: 0.4
-        collision_cost: 10000.0
-        
-      PathAlignCritic:
-        enabled: true
-        cost_power: 1
-        cost_weight: 8.0                # High = stick to global path
-        max_path_occupancy_ratio: 0.07
-        trajectory_point_step: 3
-        
-      PathFollowCritic:
-        enabled: true
-        cost_power: 1
-        cost_weight: 10.0               # Very high = follow path closely
-        offset_from_path: 0.5
-        
-      # Motion model - OMNI for mecanum
-      motion_model: "Omni"              # Perfect for your mecanum drive!
-      
-      # Visualization (disable in production for CPU save)
-      visualize: false
-      
-      # Threading - Pi5 has 4 cores, use them!
-      prune_distance: 1.5
-      transform_tolerance: 0.3
-      enforce_path_inversion: false
+      plugin: "dwb_core::DWBLocalPlanner"
+      debug_trajectory_details: True
+      # Velocities - reduced for better control
+      min_vel_x: -0.4
+      min_vel_y: -0.4
+      max_vel_x: 0.4                              # Reduced from 0.6
+      max_vel_y: 0.3                              # Reduced from 0.4
+      max_vel_theta: 1.5
+      min_speed_xy: 0.0
+      max_speed_xy: 0.4                           # Reduced from 0.6
+      min_speed_theta: 0.0
+      # Acceleration
+      acc_lim_x: 2.0
+      acc_lim_y: 2.0
+      acc_lim_theta: 2.5
+      decel_lim_x: -2.5
+      decel_lim_y: -2.5
+      decel_lim_theta: -3.0
+      # Trajectory sampling
+      vx_samples: 20
+      vy_samples: 20
+      vtheta_samples: 40                          # More rotation samples
+      sim_time: 3.0                               # Look further ahead
+      linear_granularity: 0.05
+      angular_granularity: 0.025
+      transform_tolerance: 0.8
+      xy_goal_tolerance: 0.15
+      trans_stopped_velocity: 0.05
+      short_circuit_trajectory_evaluation: True
+      stateful: True
+      # Balanced critics for smooth paths
+      critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+      BaseObstacle.scale: 0.02                    # Respect obstacles more
+      PathAlign.scale: 32.0                       # Allow slight deviation
+      PathAlign.forward_point_distance: 0.4
+      GoalAlign.scale: 24.0                       # Balanced
+      GoalAlign.forward_point_distance: 0.4
+      PathDist.scale: 32.0                        # Allow smoother curves
+      GoalDist.scale: 24.0
+      RotateToGoal.scale: 32.0
+      RotateToGoal.slowing_factor: 5.0
+      RotateToGoal.lookahead_time: -1.0
 
 local_costmap:
   local_costmap:
     ros__parameters:
       use_sim_time: False
-      update_frequency: 10.0                      # INCREASED from 5.0 (CPU save)
-      publish_frequency: 5.0                      # INCREASED from 2.0 (CPU save)
+      update_frequency: 5.0
+      publish_frequency: 2.0
       global_frame: odom
       robot_base_frame: base_link
       rolling_window: true
-      width: 5                                    # REDUCED from 6 (CPU save)
-      height: 5                                   # REDUCED from 6 (CPU save)
+      width: 8                                    # Increased for better visibility
+      height: 8
       resolution: 0.05
-      
-      # SAFE FOOTPRINT - 47cm actual → 42cm footprint (5cm total margin)
-      # More conservative than your 38cm to prevent collisions
-      footprint: "[[0.41, 0.21], [0.41, -0.21], [-0.31, -0.21], [-0.31, 0.21]]"
+      # CORRECTED FOOTPRINT - Actual robot dimensions
+      # 47cm width → 50cm footprint (25cm radius with 3cm margin)
+      # 66cm length → 68cm footprint (34cm half-length)
+      footprint: "[[0.34, 0.25], [0.34, -0.25], [-0.34, -0.25], [-0.34, 0.25]]"
       plugins: ["obstacle_layer", "inflation_layer"]
       transform_tolerance: 1.0
       
@@ -248,16 +211,16 @@ local_costmap:
           data_type: "LaserScan"
           marking: true
           clearing: true
-          obstacle_range: 1.5                     # INCREASED from 1.2 (better awareness)
-          raytrace_range: 2.5
+          obstacle_range: 2.0                     # See obstacles earlier
+          raytrace_range: 3.0                     # Clear more area
           min_obstacle_height: 0.0
           max_obstacle_height: 2.0
           inf_is_valid: false
           
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0                  # INCREASED from 2.5 (safer gradient)
-        inflation_radius: 0.28                   # KEPT (good balance)
+        cost_scaling_factor: 3.0                  # Balanced for safety
+        inflation_radius: 0.15                    # Safer than 8cm
       
       always_send_full_costmap: True
 
@@ -265,13 +228,12 @@ global_costmap:
   global_costmap:
     ros__parameters:
       use_sim_time: False
-      update_frequency: 2.0                       # INCREASED from 1.0 (CPU save)
+      update_frequency: 1.0
       publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_link
-      
-      # Match local costmap footprint
-      footprint: "[[0.41, 0.21], [0.41, -0.21], [-0.31, -0.21], [-0.31, 0.21]]"
+      # CORRECTED FOOTPRINT - Same as local
+      footprint: "[[0.34, 0.25], [0.34, -0.25], [-0.34, -0.25], [-0.34, 0.25]]"
       resolution: 0.05
       track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
@@ -292,62 +254,62 @@ global_costmap:
           marking: True
           clearing: True
           max_obstacle_height: 2.0
-          raytrace_max_range: 2.5
+          raytrace_max_range: 3.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 1.5                 # INCREASED from 1.2
+          obstacle_max_range: 2.0
           obstacle_min_range: 0.0
           
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 5.0                  # REDUCED from 10.0 (balanced)
-        inflation_radius: 0.28                  # INCREASED from 0.35 (better path planning)
+        cost_scaling_factor: 5.0                  # Moderate - smooth paths away from walls
+        inflation_radius: 0.45                    # Larger for smooth global planning
         
       always_send_full_costmap: True
 
 map_server:
   ros__parameters:
     use_sim_time: False
-    yaml_filename: "/root/ros2_ws/src/navigation_setup/maps/arena_map.yaml"
+    yaml_filename: "/root/ros2_ws/src/navigation_setup/maps/maps4.yaml"
 
 planner_server:
   ros__parameters:
-    use_sim_time: False
     allow_partial_planning: True
-    expected_planner_frequency: 1.0               # REDUCED from 20.0 (realistic for Pi)
+    use_sim_time: False
+    expected_planner_frequency: 20.0
     planner_plugins: ["GridBased"]
     
     GridBased:
       plugin: "nav2_smac_planner/SmacPlannerHybrid"
       downsample_costmap: false
       downsampling_factor: 1
-      tolerance: 0.25
+      tolerance: 0.15                             # Tighter tolerance
       allow_unknown: true
-      max_iterations: 500000                      # REDUCED from 1000000 (CPU save)
+      max_iterations: 1000000
       max_on_approach_iterations: 1000
-      max_planning_time: 3.0                      # REDUCED from 5.0 (faster timeout)
+      max_planning_time: 3.0                      # Faster planning
       motion_model_for_search: "REEDS_SHEPP"
-      angle_quantization_bins: 64                 # REDUCED from 72 (CPU save)
+      angle_quantization_bins: 72
       analytic_expansion_ratio: 3.5
       analytic_expansion_max_length: 3.0
-      minimum_turning_radius: 0.20
+      minimum_turning_radius: 0.30                # Increased for smoother curves
       reverse_penalty: 2.0
       change_penalty: 0.0
       non_straight_penalty: 1.2
-      cost_penalty: 2.5                           # INCREASED from 2.0 (avoid walls more)
+      cost_penalty: 1.5                           # Reduced - less wall-shy
       retrospective_penalty: 0.015
       lookup_table_size: 20.0
       cache_obstacle_heuristic: false
       smooth_path: true
-      debug_visualizations: false
+      debug_visualizations: true
       use_quadratic_cost_penalty: False
       downsample_obstacle_heuristic: True
       allow_primitive_interpolation: False
       smoother:
-        max_iterations: 1000
-        w_smooth: 0.3
-        w_data: 0.2
+        max_iterations: 2000                      # More smoothing iterations
+        w_smooth: 0.5                             # Stronger smoothing
+        w_data: 0.1                               # Less adherence to original
         do_refinement: true
-        refinement_num: 2
+        refinement_num: 3                         # More refinement passes
 
 smoother_server:
   ros__parameters:
@@ -383,9 +345,9 @@ behavior_server:
     robot_base_frame: base_link
     transform_tolerance: 0.5
     simulate_ahead_time: 2.0
-    max_rotational_vel: 1.2                       # REDUCED from 1.5
+    max_rotational_vel: 1.5
     min_rotational_vel: 0.4
-    rotational_acc_lim: 2.0                       # REDUCED from 2.5
+    rotational_acc_lim: 2.5
 
 waypoint_follower:
   ros__parameters:
@@ -404,10 +366,10 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.5, 0.3, 1.2]                 # REDUCED to match controller
-    min_velocity: [-0.3, -0.3, -1.2]
-    max_accel: [1.5, 1.5, 2.0]                    # REDUCED to match controller
-    max_decel: [-2.0, -2.0, -2.5]
+    max_velocity: [0.4, 0.3, 1.5]               # Matched to controller limits
+    min_velocity: [-0.4, -0.4, -1.5]
+    max_accel: [2.0, 2.0, 2.5]
+    max_decel: [-2.5, -2.5, -3.0]
     odom_topic: "/odom"
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
@@ -418,7 +380,7 @@ collision_monitor:
     use_sim_time: False
     base_frame_id: "base_link"
     odom_frame_id: "odom"
-    cmd_vel_in_topic: "cmd_vel_supervised"
+    cmd_vel_in_topic: "cmd_vel_smoothed"
     cmd_vel_out_topic: "cmd_vel"
     state_topic: "collision_monitor_state"
     transform_tolerance: 0.5
@@ -428,14 +390,14 @@ collision_monitor:
     polygons: ["PolygonStop", "PolygonSlow"]
     PolygonStop:
       type: "circle"
-      radius: 0.20                                # INCREASED from 0.18 (safer)
+      radius: 0.20                                # Slightly larger for safety
       action_type: "stop"
       min_points: 4
       visualize: true
       polygon_pub_topic: "polygon_stop"
     PolygonSlow:
       type: "circle"
-      radius: 0.35                                # INCREASED from 0.30 (safer)
+      radius: 0.35                                # Matched to footprint
       action_type: "slowdown"
       min_points: 4
       slowdown_ratio: 0.5

@@ -49,7 +49,7 @@ class ROS2WebBridge(Node):
         super().__init__('ros2_web_bridge')
         
         # WebSocket clients
-        self._clients: Set = set()
+        self.websocket_clients: Set = set()
         
         # Event loop reference for thread-safe async calls
         self.loop = None
@@ -270,15 +270,15 @@ class ROS2WebBridge(Node):
     
     def broadcast_sync(self, data: dict):
         """Thread-safe wrapper for broadcasting from ROS2 callbacks"""
-        if self.loop and self._clients:
+        if self.loop and self.websocket_clients:
             asyncio.run_coroutine_threadsafe(self.broadcast(data), self.loop)
     
     async def broadcast(self, data: dict):
         """Broadcast data to all connected clients"""
-        if self._clients:
+        if self.websocket_clients:
             message = json.dumps(data)
             await asyncio.gather(
-                *[client.send(message) for client in self._clients],
+                *[client.send(message) for client in self.websocket_clients],
                 return_exceptions=True
             )
     
@@ -291,18 +291,28 @@ class ROS2WebBridge(Node):
             if action == 'publish_cmd_vel':
                 # Publish velocity command
                 twist = Twist()
-                twist.linear.x = data.get('linear_x', 0.0)
-                twist.linear.y = data.get('linear_y', 0.0)
-                twist.angular.z = data.get('angular_z', 0.0)
+                # Ensure proper float conversion
+                try:
+                    twist.linear.x = float(data.get('linear_x', 0.0))
+                    twist.linear.y = float(data.get('linear_y', 0.0))
+                    twist.angular.z = float(data.get('angular_z', 0.0))
+                except (ValueError, TypeError) as e:
+                    self.get_logger().error(f'Invalid velocity values: {e}')
+                    await websocket.send(json.dumps({'status': 'error', 'message': f'Invalid velocity values: {e}'}))
+                    return
+                
                 self.cmd_vel_pub.publish(twist)
                 await websocket.send(json.dumps({'status': 'success', 'action': 'publish_cmd_vel'}))
             
             elif action == 'actuator_command':
                 # Control actuator
+                command = data.get('command', 'stop')
+                self.get_logger().info(f'Actuator command received: {command}')
                 msg = String()
-                msg.data = data.get('command', 'stop')
+                msg.data = command
                 self.actuator_cmd_pub.publish(msg)
-                await websocket.send(json.dumps({'status': 'success', 'action': 'actuator_command'}))
+                self.get_logger().info(f'Published to /actuator/command: {command}')
+                await websocket.send(json.dumps({'status': 'success', 'action': 'actuator_command', 'command': command}))
             
             elif action == 'qr_enable':
                 # Enable/disable QR detection
@@ -500,7 +510,7 @@ class ROS2WebBridge(Node):
 
 async def websocket_server(bridge: ROS2WebBridge, websocket):
     """Handle WebSocket connections"""
-    bridge._clients.add(websocket)
+    bridge.websocket_clients.add(websocket)
     bridge.get_logger().info(f'Client connected: {websocket.remote_address}')
     
     try:
@@ -518,7 +528,7 @@ async def websocket_server(bridge: ROS2WebBridge, websocket):
     except websockets.exceptions.ConnectionClosed:
         pass
     finally:
-        bridge._clients.remove(websocket)
+        bridge.websocket_clients.remove(websocket)
         bridge.get_logger().info(f'Client disconnected: {websocket.remote_address}')
 
 

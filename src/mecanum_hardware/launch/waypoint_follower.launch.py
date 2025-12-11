@@ -1,60 +1,89 @@
 #!/usr/bin/env python3
 """
-Complete Warehouse Robot Launch File
-Combines: Hardware Control + Mapping (SLAM) + Waypoint Recording
+Waypoint Follower Launch File
+Follows waypoints that were previously recorded during mapping
 
-This launch file brings up the entire system:
-1. Hardware Interface (Robot State Publisher, ROS2 Control, Mecanum Controller)
-2. Sensors (RPLidar, IMU)
-3. SLAM (Cartographer)
-4. Waypoint Recording System
-5. Optional: Teleop with waypoint trigger
+This launch file:
+1. Starts hardware (Robot State Publisher, ROS2 Control, Mecanum Controller)
+2. Loads the pre-recorded waypoints JSON file
+3. Launches Nav2 with pre-loaded map
+4. Starts waypoint following node
+5. Visualizes path in RViz
 
 Usage:
-    # Full system with teleop
-    ros2 launch your_package complete_mapping_system.launch.py
-
-    # Without teleop (use joystick or other controller)
-    ros2 launch your_package complete_mapping_system.launch.py use_teleop:=false
+    # Default: uses latest waypoints file
+    ros2 launch mecanum_hardware waypoint_follower.launch.py
+    
+    # Specify custom waypoints file
+    ros2 launch mecanum_hardware waypoint_follower.launch.py \
+        waypoints_file:=~/.ros/waypoints/waypoints_20251211_003037.json
+    
+    # Specify custom map
+    ros2 launch mecanum_hardware waypoint_follower.launch.py \
+        map_file:=/path/to/map.yaml
 """
 
 import os
+import glob
 from launch import LaunchDescription
 from launch.actions import (
-    DeclareLaunchArgument, 
-    RegisterEventHandler, 
+    DeclareLaunchArgument,
+    RegisterEventHandler,
     TimerAction,
     LogInfo,
-    IncludeLaunchDescription
 )
-from launch.conditions import IfCondition, UnlessCondition
-from launch.event_handlers import OnProcessStart, OnProcessExit
+from launch.conditions import IfCondition
+from launch.event_handlers import OnProcessStart
 from launch.substitutions import (
-    Command, 
-    FindExecutable, 
-    LaunchConfiguration, 
+    Command,
+    FindExecutable,
+    LaunchConfiguration,
     PathJoinSubstitution,
-    PythonExpression
 )
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+
+
+def find_latest_waypoints_file(waypoint_dir):
+    """Find the most recently modified waypoints file"""
+    pattern = os.path.join(waypoint_dir, 'waypoints_*.json')
+    files = glob.glob(pattern)
+    if files:
+        return max(files, key=os.path.getctime)
+    return None
 
 
 def generate_launch_description():
     # ==================== ARGUMENTS ====================
     declared_arguments = []
     
-    # General
+    # Default waypoints directory
+    default_waypoint_dir = os.path.expanduser('~/.ros/waypoints')
+    default_waypoints_file = find_latest_waypoints_file(default_waypoint_dir)
+    if default_waypoints_file is None:
+        default_waypoints_file = os.path.join(default_waypoint_dir, 'waypoints.json')
+    
     declared_arguments.append(DeclareLaunchArgument(
         'use_sim', default_value='false',
         description='Use simulation (Gazebo) or real hardware'))
     
     declared_arguments.append(DeclareLaunchArgument(
-        'use_teleop', default_value='true',
-        description='Launch keyboard teleop with waypoint recording'))
+        'waypoints_file', default_value=default_waypoints_file,
+        description='Path to waypoints JSON file'))
     
-    # Hardware/Description
+    declared_arguments.append(DeclareLaunchArgument(
+        'map_file', 
+        default_value=PathJoinSubstitution([
+            FindPackageShare('navigation_setup'),
+            'maps',
+            'maps5.yaml'
+        ]),
+        description='Path to map YAML file'))
+    
+    declared_arguments.append(DeclareLaunchArgument(
+        'nav2_enabled', default_value='true',
+        description='Enable Nav2 for autonomous navigation'))
+    
     declared_arguments.append(DeclareLaunchArgument(
         'controllers_file', default_value='hardware_controllers.yaml',
         description='YAML file with the controllers configuration'))
@@ -67,7 +96,6 @@ def generate_launch_description():
         'description_file', default_value='mec_rob.xacro',
         description='URDF/XACRO description file'))
     
-    # Sensor Configuration
     declared_arguments.append(DeclareLaunchArgument(
         'lidar_port', default_value='/dev/ttyUSB2',
         description='Serial port for RPLidar'))
@@ -76,25 +104,16 @@ def generate_launch_description():
         'lidar_frame', default_value='lidar_link',
         description='Frame ID for LiDAR scan messages'))
     
-    # Waypoint Configuration
-    declared_arguments.append(DeclareLaunchArgument(
-        'waypoint_dir', default_value=os.path.expanduser('~/.ros/waypoints'),
-        description='Directory to store waypoint files'))
-    
-    declared_arguments.append(DeclareLaunchArgument(
-        'use_odom_for_waypoints', default_value='true',
-        description='Use odometry instead of TF for waypoint recording'))
-    
     # Get configurations
     use_sim = LaunchConfiguration('use_sim')
-    use_teleop = LaunchConfiguration('use_teleop')
+    waypoints_file = LaunchConfiguration('waypoints_file')
+    map_file = LaunchConfiguration('map_file')
+    nav2_enabled = LaunchConfiguration('nav2_enabled')
     controllers_file = LaunchConfiguration('controllers_file')
     description_package = LaunchConfiguration('description_package')
     description_file = LaunchConfiguration('description_file')
     lidar_port = LaunchConfiguration('lidar_port')
     lidar_frame = LaunchConfiguration('lidar_frame')
-    waypoint_dir = LaunchConfiguration('waypoint_dir')
-    use_odom_for_waypoints = LaunchConfiguration('use_odom_for_waypoints')
     
     # ==================== PATHS ====================
     
@@ -103,8 +122,8 @@ def generate_launch_description():
         PathJoinSubstitution([FindExecutable(name='xacro')]),
         ' ',
         PathJoinSubstitution([
-            FindPackageShare(description_package), 
-            'urdf', 
+            FindPackageShare(description_package),
+            'urdf',
             description_file
         ]),
         ' use_sim:=', use_sim,
@@ -118,14 +137,6 @@ def generate_launch_description():
         'config',
         controllers_file,
     ])
-    
-    # Cartographer configuration
-    pkg_nav = 'navigation_setup'
-    cartographer_config_dir = PathJoinSubstitution([
-        FindPackageShare(pkg_nav), 
-        'config'
-    ])
-    cartographer_config_file = 'cartographer_mapping.lua'
     
     # ==================== HARDWARE NODES ====================
     
@@ -146,7 +157,7 @@ def generate_launch_description():
         parameters=[robot_description],
     )
     
-    # 3. Joint State Broadcaster Spawner (delayed)
+    # 3. Joint State Broadcaster Spawner
     joint_state_broadcaster_spawner = Node(
         package='controller_manager',
         executable='spawner',
@@ -154,7 +165,7 @@ def generate_launch_description():
         output='screen',
     )
     
-    # 4. Mecanum Drive Controller Spawner (delayed)
+    # 4. Mecanum Drive Controller Spawner
     mecanum_drive_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
@@ -162,7 +173,7 @@ def generate_launch_description():
         output='screen',
     )
     
-    # 5. CMD_VEL Bridge (delayed)
+    # 5. CMD_VEL Bridge
     cmd_vel_bridge_node = Node(
         package='mecanum_in_gazebo',
         executable='cmd_vel_bridge.py',
@@ -196,69 +207,80 @@ def generate_launch_description():
         output='screen'
     )
     
-    # ==================== SLAM NODES ====================
+    # ==================== LOCALIZATION & NAVIGATION ====================
     
-    # 8. Cartographer Node
-    cartographer_node = Node(
-        package='cartographer_ros',
-        executable='cartographer_node',
-        name='cartographer_node',
+    # 8. Map Server (serves pre-recorded map)
+    map_server_node = Node(
+        package='nav2_map_server',
+        executable='map_server',
+        name='map_server',
         output='screen',
-        parameters=[{'use_sim_time': False}],
-        arguments=[
-            '-configuration_directory', cartographer_config_dir,
-            '-configuration_basename', cartographer_config_file
-        ],
-        remappings=[
-            ('scan', '/scan'),
-            ('odom', '/mecanum_drive_controller/odometry'),
-            ('imu', '/imu/data')
-        ]
+        parameters=[{'yaml_filename': map_file}],
+        condition=IfCondition(nav2_enabled)
     )
     
-    # 9. Occupancy Grid Node
-    occupancy_grid_node = Node(
-        package='cartographer_ros',
-        executable='cartographer_occupancy_grid_node',
-        name='cartographer_occupancy_grid_node',
-        output='screen',
-        parameters=[{'use_sim_time': False}],
-        arguments=['-resolution', '0.05', '-publish_period_sec', '1.0']
-    )
-    
-    # ==================== WAYPOINT RECORDING ====================
-    
-    # 10. Waypoint Recorder Node
-    waypoint_recorder_node = Node(
-        package='mecanum_hardware',
-        executable='waypoint_recorder_node.py',
-        name='waypoint_recorder',
+    # 9. AMCL Localization
+    amcl_node = Node(
+        package='nav2_amcl',
+        executable='amcl',
+        name='amcl',
         output='screen',
         parameters=[{
-            'waypoint_dir': waypoint_dir,
-            'use_odom': use_odom_for_waypoints,
-            'odom_topic': '/mecanum_drive_controller/odometry',
-            'base_frame': 'base_link',
-            'map_frame': 'map'
-        }]
+            'use_sim_time': use_sim,
+            'initial_pose.x': 0.0,
+            'initial_pose.y': 0.0,
+            'initial_pose.z': 0.0,
+            'initial_pose.yaw': 0.0,
+            'min_particles': 500,
+            'max_particles': 2000,
+        }],
+        condition=IfCondition(nav2_enabled)
     )
     
-    # # 11. Teleop with Waypoint Recording (Optional)
-    # teleop_node = Node(
-    #     package='mecanum_in_gazebo',
-    #     executable='enhanced_joystick_teleop.py',
-    #     name='teleop_joy',
-    #     output='screen',
-    #     parameters=[{
-    #         'linear_speed': 0.3,
-    #         'angular_speed': 0.5
-    #     }],
-    #     condition=IfCondition(use_teleop)
-    # )
+    # Lifecycle Manager to activate Nav2 nodes
+    lifecycle_manager = Node(
+        package='nav2_lifecycle_manager',
+        executable='lifecycle_manager',
+        name='lifecycle_manager_nav2',
+        output='screen',
+        parameters=[{
+            'autostart': True,
+            'node_names': ['map_server', 'amcl']
+        }],
+        condition=IfCondition(nav2_enabled)
+    )
+    
+    # 10. Waypoint Follower Node (Custom)
+    waypoint_follower_node = Node(
+        package='mecanum_hardware',
+        executable='waypoint_follower_node.py',
+        name='waypoint_follower',
+        output='screen',
+        parameters=[{
+            'waypoints_file': waypoints_file,
+            'goal_tolerance_linear': 0.1,
+            'goal_tolerance_angular': 0.1,
+            'max_linear_vel': 0.3,
+            'max_angular_vel': 0.5,
+        }],
+        condition=IfCondition(nav2_enabled)
+    )
+    
+    # 11. Path Visualizer Node (publishes RViz markers)
+    path_visualizer_node = Node(
+        package='mecanum_hardware',
+        executable='waypoint_path_visualizer.py',
+        name='waypoint_path_visualizer',
+        output='screen',
+        parameters=[{
+            'waypoints_file': waypoints_file,
+        }],
+        condition=IfCondition(nav2_enabled)
+    )
     
     # ==================== DELAYED ACTIONS ====================
     
-    # Delay joint_state_broadcaster 2 seconds after control_node starts
+    # Delay joint_state_broadcaster 2 seconds
     delay_joint_state_broadcaster = RegisterEventHandler(
         event_handler=OnProcessStart(
             target_action=control_node,
@@ -274,7 +296,7 @@ def generate_launch_description():
         )
     )
     
-    # Delay mecanum_drive_controller 3 seconds after control_node starts
+    # Delay mecanum_drive_controller 3 seconds
     delay_mecanum_controller = RegisterEventHandler(
         event_handler=OnProcessStart(
             target_action=control_node,
@@ -290,7 +312,7 @@ def generate_launch_description():
         )
     )
     
-    # Delay cmd_vel_bridge 4 seconds after control_node starts
+    # Delay cmd_vel_bridge 4 seconds
     delay_cmd_vel_bridge = RegisterEventHandler(
         event_handler=OnProcessStart(
             target_action=control_node,
@@ -306,7 +328,7 @@ def generate_launch_description():
         )
     )
     
-    # Delay sensors 5 seconds after hardware is ready
+    # Delay sensors 5 seconds
     delay_sensors = RegisterEventHandler(
         event_handler=OnProcessStart(
             target_action=control_node,
@@ -323,61 +345,48 @@ def generate_launch_description():
         )
     )
     
-    # Delay SLAM 8 seconds after control_node (sensors need time to stabilize)
-    delay_slam = RegisterEventHandler(
+    # Delay Nav2 stack 8 seconds (after sensors stabilize)
+    delay_nav2 = RegisterEventHandler(
         event_handler=OnProcessStart(
             target_action=control_node,
             on_start=[
                 TimerAction(
                     period=8.0,
                     actions=[
-                        LogInfo(msg='---> Starting SLAM (Cartographer)'),
-                        cartographer_node,
-                        occupancy_grid_node
+                        LogInfo(msg='---> Starting Navigation Stack (Map Server + AMCL)'),
+                        lifecycle_manager,
+                        map_server_node,
+                        amcl_node,
+                        path_visualizer_node,
                     ],
                 )
             ],
         )
     )
     
-    # Delay waypoint recorder 10 seconds (after SLAM is running)
-    delay_waypoint_recorder = RegisterEventHandler(
+    # Delay waypoint follower 12 seconds (after Nav2 is ready)
+    delay_waypoint_follower = RegisterEventHandler(
         event_handler=OnProcessStart(
             target_action=control_node,
             on_start=[
                 TimerAction(
-                    period=10.0,
+                    period=12.0,
                     actions=[
-                        LogInfo(msg='---> Starting Waypoint Recorder'),
-                        waypoint_recorder_node
+                        LogInfo(msg='---> Starting Waypoint Follower'),
+                        LogInfo(msg=f'Loading waypoints from: {waypoints_file}'),
+                        waypoint_follower_node
                     ],
                 )
             ],
         )
     )
-    
-    # Delay teleop 11 seconds (last, after everything is ready)
-    # delay_teleop = RegisterEventHandler(
-    #     event_handler=OnProcessStart(
-    #         target_action=control_node,
-    #         on_start=[
-    #             TimerAction(
-    #                 period=11.0,
-    #                 actions=[
-    #                     LogInfo(msg='---> Starting Teleop (if enabled)'),
-    #                     teleop_node
-    #                 ],
-    #             )
-    #         ],
-    #     )
-    # )
     
     # ==================== LAUNCH DESCRIPTION ====================
     
     nodes = [
         LogInfo(msg='=' * 80),
-        LogInfo(msg='WAREHOUSE ROBOT COMPLETE MAPPING SYSTEM'),
-        LogInfo(msg='Hardware + Sensors + SLAM + Waypoint Recording'),
+        LogInfo(msg='WAREHOUSE ROBOT WAYPOINT FOLLOWER'),
+        LogInfo(msg='Hardware + Sensors + Localization + Waypoint Following'),
         LogInfo(msg='=' * 80),
         
         # Hardware
@@ -389,9 +398,8 @@ def generate_launch_description():
         delay_mecanum_controller,
         delay_cmd_vel_bridge,
         delay_sensors,
-        delay_slam,
-        delay_waypoint_recorder,
-        # delay_teleop,
+        delay_nav2,
+        delay_waypoint_follower,
     ]
     
     return LaunchDescription(declared_arguments + nodes)

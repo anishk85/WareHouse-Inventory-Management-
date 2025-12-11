@@ -66,12 +66,16 @@ install(PROGRAMS
   scripts/actuator_control_node.py
   scripts/actuator_pid_control_node.py
   scripts/laser_sensor.py
-  scripts/waypoint_follower_node.py
-  scripts/nav2_waypoint_follower.py
-  scripts/teleop_with_waypoint_save.py
   scripts/ros2_web_bridge.py
-  scripts/inventory_mission_node.py
   scripts/height_monitor_node.py
+  scripts/waypoint_recorder_node.py
+  scripts/waypoint_follower_node.py
+  scripts/waypoint_path_visualizer.py
+  scripts/warehouse_navigation_coordinator.py
+  scripts/enhanced_joystick_teleop.py
+  scripts/pid_tuner.py
+  scripts/test_websocket_bridge.py
+  scripts/rpi_motor_control.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

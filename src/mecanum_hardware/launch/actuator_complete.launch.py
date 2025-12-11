@@ -73,7 +73,7 @@ def generate_launch_description():
         }]
     )
     
-    # Height moniyour_package_nametor node
+    # Height monitor node
     height_monitor_node = Node(
         package='mecanum_hardware',  # Replace with your package name
         executable='height_monitor_node.py',

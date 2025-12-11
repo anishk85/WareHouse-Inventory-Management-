@@ -551,24 +551,26 @@ export default function EnhancedDashboard() {
   // Send velocity commands
   useEffect(() => {
     const interval = setInterval(() => {
-      if (velocity.linear_x !== 0 || velocity.linear_y !== 0 || velocity.angular_z !== 0) {
-        send('publish_cmd_vel', {
-          linear_x: velocity.linear_x * maxSpeed,
-          linear_y: velocity.linear_y * maxSpeed,
-          angular_z: velocity.angular_z * maxAngular
-        })
-      }
+      const linear_x = Number(velocity.linear_x) * Number(maxSpeed) || 0.0
+      const linear_y = Number(velocity.linear_y) * Number(maxSpeed) || 0.0
+      const angular_z = Number(velocity.angular_z) * Number(maxAngular) || 0.0
+      
+      send('publish_cmd_vel', {
+        linear_x: linear_x,
+        linear_y: linear_y,
+        angular_z: angular_z
+      })
     }, 100)
 
     return () => clearInterval(interval)
   }, [velocity, maxSpeed, maxAngular, send])
 
   const handleJoystickMove = useCallback((x: number, y: number) => {
-    setVelocity(prev => ({ ...prev, linear_x: y, linear_y: -x }))
+    setVelocity(prev => ({ ...prev, linear_x: Number(y) || 0, linear_y: Number(-x) || 0 }))
   }, [])
 
   const handleRotationChange = useCallback((z: number) => {
-    setVelocity(prev => ({ ...prev, angular_z: z }))
+    setVelocity(prev => ({ ...prev, angular_z: Number(z) || 0 }))
   }, [])
 
   const handleLaunch = (configId: string, params: Record<string, any>) => {
@@ -594,11 +596,11 @@ export default function EnhancedDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 bg-white dark:bg-slate-950 p-4 md:p-6 lg:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
             🤖 Warehouse Rover Control
           </h1>
           <Badge variant={isConnected ? "default" : "destructive"} className={isConnected ? "bg-green-500" : ""}>
@@ -607,22 +609,22 @@ export default function EnhancedDashboard() {
         </div>
         
         {/* Quick Stats */}
-        <div className="flex gap-4">
+        <div className="flex gap-3 md:gap-4 flex-wrap">
           <div className="text-center">
-            <div className="text-xs text-slate-400">Position</div>
-            <div className="text-sm text-cyan-400">
+            <div className="text-xs text-slate-400 dark:text-slate-500">Position</div>
+            <div className="text-sm text-cyan-600 dark:text-cyan-400">
               ({robotData.position.x.toFixed(2)}, {robotData.position.y.toFixed(2)})
             </div>
           </div>
           <div className="text-center">
-            <div className="text-xs text-slate-400">Speed</div>
-            <div className="text-sm text-green-400">
+            <div className="text-xs text-slate-400 dark:text-slate-500">Speed</div>
+            <div className="text-sm text-green-600 dark:text-green-400">
               {Math.sqrt(robotData.linearVel.x ** 2 + robotData.linearVel.y ** 2).toFixed(2)} m/s
             </div>
           </div>
           <div className="text-center">
-            <div className="text-xs text-slate-400">Obstacle</div>
-            <div className={`text-sm ${sensorData.closestObstacle < 0.5 ? 'text-red-400' : 'text-green-400'}`}>
+            <div className="text-xs text-slate-400 dark:text-slate-500">Obstacle</div>
+            <div className={`text-sm ${sensorData.closestObstacle < 0.5 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
               {sensorData.closestObstacle.toFixed(2)}m
             </div>
           </div>

@@ -56,7 +56,7 @@ class HeightMonitorNode(Node):
         # State tracking
         self.current_height = None
         self.last_warning_time = 0
-        self.warning_cooldown = 2.0  # seconds between repeated warnings
+        self.warning_cooldown = 1.0  # seconds between repeated warnings
         self.last_status = 'OK'
         
         # Statistics

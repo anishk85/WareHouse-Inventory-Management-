@@ -3,8 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Activity, AlertCircle, MapPin, Battery, Wifi, Server } from "lucide-react"
-import TelemetryChart from "@/components/telemetry-chart"
+import { Activity } from "lucide-react"
 import { useRealTime } from "@/components/real-time-provider"
 import { RoverVisualization } from "@/components/rover-visualization"
 import { GSAPStatusIndicator } from "@/components/gsap-status-indicator"
@@ -12,12 +11,7 @@ import { GSAPStatusIndicator } from "@/components/gsap-status-indicator"
 export default function Dashboard() {
   const { isConnected, subscribe } = useRealTime()
   const [telemetry, setTelemetry] = useState({
-    batteryLevel: 87,
     speed: 2.4,
-    temperature: 45,
-    gpsAccuracy: 1.2,
-    signalStrength: 95,
-    systemLoad: 42,
   })
   const [robotStatus, setRobotStatus] = useState<"idle" | "active" | "error" | "warning">("active")
   const [robotPosition, setRobotPosition] = useState({ x: 0, y: 0, theta: 0 })
@@ -43,12 +37,7 @@ export default function Dashboard() {
     const interval = setInterval(() => {
       setTelemetry((prev) => ({
         ...prev,
-        batteryLevel: Math.max(20, prev.batteryLevel + (Math.random() - 0.5) * 2),
         speed: Math.max(0, Math.min(5, prev.speed + (Math.random() - 0.5) * 0.5)),
-        temperature: prev.temperature + (Math.random() - 0.5) * 2,
-        gpsAccuracy: Math.max(0.5, prev.gpsAccuracy + (Math.random() - 0.5) * 0.3),
-        signalStrength: Math.max(50, Math.min(100, prev.signalStrength + (Math.random() - 0.5) * 5)),
-        systemLoad: Math.max(10, Math.min(90, prev.systemLoad + (Math.random() - 0.5) * 10)),
       }))
     }, 2000)
 
@@ -102,8 +91,6 @@ export default function Dashboard() {
       {/* Status Indicators */}
       <div className="flex gap-4 flex-wrap">
         <GSAPStatusIndicator status={robotStatus} label="Robot Status" />
-        <GSAPStatusIndicator status={telemetry.batteryLevel > 50 ? "active" : "warning"} label="Battery" />
-        <GSAPStatusIndicator status={telemetry.temperature < 60 ? "idle" : "warning"} label="Temperature" />
       </div>
 
       <div className="flex items-center justify-between">
@@ -132,49 +119,11 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatusCard
-          icon={<Battery size={20} />}
-          title="Battery"
-          value={`${telemetry.batteryLevel.toFixed(1)}%`}
-          status={telemetry.batteryLevel > 50 ? "good" : "warning"}
-        />
-        <StatusCard
-          icon={<MapPin size={20} />}
-          title="GPS Accuracy"
-          value={`${telemetry.gpsAccuracy.toFixed(2)}m`}
-          status={telemetry.gpsAccuracy < 2 ? "good" : "warning"}
-        />
-        <StatusCard
           icon={<Activity size={20} />}
           title="Speed"
           value={`${telemetry.speed.toFixed(1)} m/s`}
           status="good"
         />
-        <StatusCard
-          icon={<Wifi size={20} />}
-          title="Signal"
-          value={`${telemetry.signalStrength.toFixed(0)}%`}
-          status={telemetry.signalStrength > 70 ? "good" : "warning"}
-        />
-        <StatusCard
-          icon={<Server size={20} />}
-          title="System Load"
-          value={`${telemetry.systemLoad.toFixed(0)}%`}
-          status={telemetry.systemLoad < 70 ? "good" : "warning"}
-        />
-        <StatusCard
-          icon={<AlertCircle size={20} />}
-          title="Temperature"
-          value={`${telemetry.temperature.toFixed(1)}°C`}
-          status={telemetry.temperature < 60 ? "good" : "warning"}
-        />
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TelemetryChart title="Battery Level" data="battery" />
-        <TelemetryChart title="Signal Strength" data="signal" />
-        <TelemetryChart title="System Temperature" data="temperature" />
-        <TelemetryChart title="GPS Accuracy" data="accuracy" />
       </div>
 
       {/* Mission Info */}

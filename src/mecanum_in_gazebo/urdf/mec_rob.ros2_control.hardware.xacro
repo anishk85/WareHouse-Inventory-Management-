@@ -3,8 +3,8 @@
 
   <!-- Arguments passed from main URDF -->
   <xacro:arg name="use_sim" default="true"/>
-  <xacro:arg name="esp1_port" default="/dev/ttyUSB0"/>
-  <xacro:arg name="esp2_port" default="/dev/ttyUSB1"/>
+  <xacro:arg name="esp1_port" default="/dev/esp_front"/>
+  <xacro:arg name="esp2_port" default="/dev/esp_back"/>
 
   <!-- Simulation Hardware Interface (Gazebo) -->
   <xacro:if value="$(arg use_sim)">

@@ -433,6 +433,8 @@ export default function EnhancedDashboard() {
   const [qrDetections, setQrDetections] = useState<any[]>([])
   const [logs, setLogs] = useState<string[]>([])
   
+  const [liftCommand, setLiftCommand] = useState<'up' | 'down' | 'stop'>('stop')
+  
   // Velocity state for teleop
   const [velocity, setVelocity] = useState({ linear_x: 0, linear_y: 0, angular_z: 0 })
   const [maxSpeed, setMaxSpeed] = useState(0.5)
@@ -450,7 +452,6 @@ export default function EnhancedDashboard() {
       parameters: [
         { name: 'serial_port', label: 'Serial Port', type: 'string', value: '/dev/ttyUSB0' },
         { name: 'lidar_port', label: 'LiDAR Port', type: 'string', value: '/dev/ttyUSB2' },
-        { name: 'use_sim', label: 'Simulation Mode', type: 'boolean', value: false },
       ]
     },
     {
@@ -565,6 +566,30 @@ export default function EnhancedDashboard() {
     return () => clearInterval(interval)
   }, [velocity, maxSpeed, maxAngular, send])
 
+  // Lift height simulation effect (internal, no UI indicator)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSensorData(prev => {
+        const MIN_HEIGHT = 0.05
+        const MAX_HEIGHT = 1.5
+        const SPEED = 0.01 // meters per update (100ms interval = 0.1m/s)
+        
+        let newHeight = prev.laserHeight
+
+        if (liftCommand === 'up') {
+          newHeight = Math.min(prev.laserHeight + SPEED, MAX_HEIGHT)
+        } else if (liftCommand === 'down') {
+          newHeight = Math.max(prev.laserHeight - SPEED, MIN_HEIGHT)
+        }
+        // If 'stop', keep current height
+
+        return { ...prev, laserHeight: newHeight }
+      })
+    }, 100) // Update every 100ms
+
+    return () => clearInterval(interval)
+  }, [liftCommand])
+
   const handleJoystickMove = useCallback((x: number, y: number) => {
     setVelocity(prev => ({ ...prev, linear_x: Number(y) || 0, linear_y: Number(-x) || 0 }))
   }, [])
@@ -591,6 +616,10 @@ export default function EnhancedDashboard() {
   const handleActuatorControl = (command: 'up' | 'down' | 'stop') => {
     console.log('[Actuator] Sending command:', command)
     send('actuator_command', { command })
+    
+    // Update simulation state
+    setLiftCommand(command)
+    
     // Also add visual feedback
     setActuatorStatus(command === 'up' ? 'moving_up' : command === 'down' ? 'moving_down' : 'stopped')
   }

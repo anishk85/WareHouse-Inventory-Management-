@@ -5,7 +5,7 @@ import { Menu, X, Radio } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 
-type PageType = "dashboard" | "launch" | "waypoint" | "database" | "control"
+type PageType = "dashboard" | "launch" | "database" | "control"
 
 interface NavigationProps {
   currentPage: PageType
@@ -16,7 +16,6 @@ const navItems: { id: PageType; label: string; icon: string }[] = [
   { id: "control", label: "Control Panel", icon: "🎮" },
   { id: "dashboard", label: "Dashboard", icon: "📡" },
   { id: "launch", label: "Launch Control", icon: "🚀" },
-  { id: "waypoint", label: "Waypoint Creator", icon: "🎯" },
   { id: "database", label: "Database", icon: "💾" },
 ]
 

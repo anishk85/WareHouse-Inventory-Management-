@@ -3,50 +3,21 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Int32
-import gpiod
+import serial
 import time
 
 class ActuatorControlNode(Node):
     def __init__(self):
         super().__init__('actuator_control_node')
         
-        # GPIO pin configuration (BCM numbering)
-        self.PWM_PIN = 18  # GPIO 18 for PWM signal
-        self.DIR_PIN = 23  # GPIO 23 for direction control
+        # ESP32 Serial Configuration
+        self.ESP32_PORT = '/dev/ttyUSB3'
+        self.ESP32_BAUD = 115200
+        self.ser = None
+        self.connected = False
         
-        # Initialize GPIO using gpiod (version 1.x API)
-        try:
-            self.chip = gpiod.Chip('gpiochip0')
-            
-            # Get lines (pins)
-            self.pwm_line = self.chip.get_line(self.PWM_PIN)
-            self.dir_line = self.chip.get_line(self.DIR_PIN)
-            
-            # Request lines as outputs with explicit initial states
-            # IMPORTANT: Start with PWM LOW and DIR LOW to prevent glitches
-            self.pwm_line.request(
-                consumer="actuator_pwm", 
-                type=gpiod.LINE_REQ_DIR_OUT,
-                flags=gpiod.LINE_REQ_FLAG_BIAS_PULL_DOWN,  # Pull-down to prevent floating
-                default_vals=[0]
-            )
-            self.dir_line.request(
-                consumer="actuator_dir", 
-                type=gpiod.LINE_REQ_DIR_OUT,
-                flags=gpiod.LINE_REQ_FLAG_BIAS_PULL_DOWN,  # Pull-down to prevent floating
-                default_vals=[0]
-            )
-            
-            # Ensure both pins are LOW at startup
-            self.pwm_line.set_value(0)
-            self.dir_line.set_value(0)
-            time.sleep(0.1)  # Give hardware time to stabilize
-            
-            self.get_logger().info('GPIO initialized successfully using gpiod with pull-down resistors')
-        except Exception as e:
-            self.get_logger().error(f'Failed to initialize GPIO: {e}')
-            self.get_logger().error('Make sure /dev/gpiochip0 is accessible')
-            raise
+        # Connect to ESP32
+        self.connect_esp32()
         
         # Create subscribers
         self.command_sub = self.create_subscription(
@@ -63,35 +34,139 @@ class ActuatorControlNode(Node):
             10
         )
         
+        # Subscribe to joystick buttons
+        self.joy_sub = self.create_subscription(
+            String,
+            'joy_buttons',
+            self.joy_button_callback,
+            10
+        )
+        
         # Create publisher for status
         self.status_pub = self.create_publisher(String, 'actuator/status', 10)
         
         # Current state - ALWAYS RUN AT FULL SPEED
-        self.current_speed = 100  # FULL SPEED ALWAYS
+        self.current_speed = 255  # FULL SPEED (0-255)
         self.current_direction = 'stopped'
         self.is_running = False
         
-        self.get_logger().info('Actuator Control Node initialized')
-        self.get_logger().info(f'PWM Pin: GPIO{self.PWM_PIN}, DIR Pin: GPIO{self.DIR_PIN}')
-        self.get_logger().info('Operating at FULL SPEED (100%) always')
-        self.get_logger().info('Commands: "up", "down", "stop"')
-        self.get_logger().info('Motor will run continuously until "stop" command is sent')
-        self.get_logger().info('')
-        self.get_logger().info('HARDWARE CHECKS:')
-        self.get_logger().info('  ✓ Ensure RPi GND connected to motor driver GND')
-        self.get_logger().info('  ✓ Motor driver has separate power supply (NOT from RPi)')
-        self.get_logger().info('  ✓ Use short, thick wires for power connections')
+        # Button state for continuous control
+        self.continuous_up = False  # X button pressed once = continuous UP
+        self.continuous_down = False  # Y button pressed once = continuous DOWN
+        self.plus_button_held = False  # Plus button hold state
         
+        # Track last plus button direction for hold behavior
+        self.last_plus_direction = None
+        
+        # Watchdog: Track last command time to detect stale button state
+        self.last_command_time = time.time()
+        
+        # Create timer for continuous command sending (50Hz = 20ms)
+        self.control_timer = self.create_timer(0.02, self.control_loop)
+        
+        self.get_logger().info('Actuator Control Node initialized (ESP32 Serial)')
+        self.get_logger().info(f'ESP32 Port: {self.ESP32_PORT} @ {self.ESP32_BAUD} baud')
+        self.get_logger().info('Operating at FULL SPEED (255) always')
+        self.get_logger().info('')
+        self.get_logger().info('=== CONTROL SCHEME ===')
+        self.get_logger().info('X button:    Press ONCE → Continuous UP (until RT/LT pressed)')
+        self.get_logger().info('Y button:    Press ONCE → Continuous DOWN (until RT/LT pressed)')
+        self.get_logger().info('RT/LT:       STOP movement')
+        self.get_logger().info('Plus button: HOLD to move in last direction (stops when released)')
+        self.get_logger().info('Commands at 50Hz while active')
+        self.get_logger().info('')
+        
+    def connect_esp32(self):
+        """Establish serial connection to ESP32"""
+        try:
+            self.ser = serial.Serial(
+                port=self.ESP32_PORT,
+                baudrate=self.ESP32_BAUD,
+                timeout=0.5,
+                write_timeout=0.5
+            )
+            time.sleep(1)
+            self.connected = True
+            self.get_logger().info(f'✓ Connected to ESP32 on {self.ESP32_PORT}')
+            
+            # Clear any initial garbage data
+            try:
+                while self.ser.in_waiting > 0:
+                    msg = self.ser.readline().decode('utf-8', errors='ignore').strip()
+                    if msg:
+                        self.get_logger().info(f'ESP32 init: {msg}')
+            except Exception as e:
+                self.get_logger().debug(f'No initial ESP32 messages: {e}')
+                    
+        except serial.SerialException as e:
+            self.get_logger().error(f'✗ Failed to connect to ESP32: {e}')
+            self.get_logger().error('Check:')
+            self.get_logger().error('  1. ESP32 connected to /dev/ttyUSB3')
+            self.get_logger().error('  2. Permissions: sudo usermod -a -G dialout $USER')
+            self.get_logger().error('  3. Port correct: ls /dev/ttyUSB*')
+            self.connected = False
+    
+    def send_esp32_command(self, pwm, direction):
+        """
+        Send motor command to ESP32
+        Format: "PWM,DIR\n"
+        PWM: 0-255
+        DIR: 0=reverse, 1=forward
+        """
+        if not self.connected:
+            return False
+        
+        if not self.ser or not self.ser.is_open:
+            self.get_logger().error('Serial port is closed')
+            return False
+        
+        try:
+            pwm = max(0, min(255, int(pwm)))
+            direction = 1 if direction else 0
+            
+            cmd = f"{pwm},{direction}\n"
+            
+            self.ser.write(cmd.encode('utf-8'))
+            self.ser.flush()
+            self.get_logger().debug(f'Sent to ESP32: {cmd.strip()}')
+            return True
+            
+        except serial.SerialException as e:
+            self.get_logger().error(f'Error sending to ESP32: {e}')
+            self.connected = False
+            return False
+        except Exception as e:
+            self.get_logger().error(f'Unexpected error: {e}')
+            return False
+    
     def command_callback(self, msg):
-        """Handle command messages: 'up', 'down', 'stop'"""
+        """
+        Handle command messages from Plus button: 'up', 'down', 'stop'
+        Plus button behavior: commands come as 'up' or 'down' repeatedly while held
+        """
         command = msg.data.lower()
         
         if command == 'up':
-            self.lift_up()
+            # Plus button sending UP - enable hold mode
+            self.plus_button_held = True
+            self.last_plus_direction = 'up'
+            self.continuous_up = False  # Cancel continuous modes
+            self.continuous_down = False
+            self.get_logger().debug('Plus: UP (hold active)')
+            
         elif command == 'down':
-            self.lift_down()
+            # Plus button sending DOWN - enable hold mode
+            self.plus_button_held = True
+            self.last_plus_direction = 'down'
+            self.continuous_up = False  # Cancel continuous modes
+            self.continuous_down = False
+            self.get_logger().debug('Plus: DOWN (hold active)')
+            
         elif command == 'stop':
-            self.stop_actuator()
+            # Plus button released or explicit stop
+            self.plus_button_held = False
+            self.last_plus_direction = None
+            self.get_logger().info('⏹️ Plus button STOP')
         else:
             self.get_logger().warn(f'Unknown command: {command}')
     
@@ -100,65 +175,122 @@ class ActuatorControlNode(Node):
         speed = max(0, min(100, msg.data))
         self.get_logger().info(f'Speed command received ({speed}%), but operating at FULL SPEED always')
     
-    def lift_up(self):
-        """Move actuator up at FULL SPEED - runs continuously until stop"""
-        # CRITICAL SEQUENCE TO PREVENT DIRECTION FLIP:
-        # 1. Ensure PWM is completely OFF
-        self.pwm_line.set_value(0)
-        time.sleep(0.01)  # 10ms delay - longer to ensure motor stops
+    def joy_button_callback(self, msg):
+        """
+        Handle joystick button presses:
+        - X button (press once): Start continuous UP until RT/LT pressed
+        - Y button (press once): Start continuous DOWN until RT/LT pressed  
+        - RT button: STOP movement
+        - LT button: STOP movement
         
-        # 2. Set direction pin to UP - INVERTED: LOW = UP
-        self.dir_line.set_value(0)  
-        time.sleep(0.02)  # 20ms delay - allow direction to stabilize
+        Expected format: "BUTTON:STATE"
+        Examples: "X:1", "X:0", "Y:1", "RT:1", "LT:1"
+        """
+        button_data = msg.data.strip()
         
-        # 3. Enable PWM at FULL SPEED
-        self.pwm_line.set_value(1)
+        if ':' not in button_data:
+            self.get_logger().warn(f'Invalid button format: "{button_data}"')
+            return
         
-        self.is_running = True
-        self.current_direction = 'up'
+        try:
+            button, state = button_data.split(':')
+            button = button.strip().upper()
+            state = int(state.strip())
+        except ValueError:
+            self.get_logger().warn(f'Invalid button data: "{button_data}"')
+            return
         
-        self.get_logger().info('🔼 Moving UP at FULL SPEED (100%) - RUNNING CONTINUOUSLY')
-        self.get_logger().info('   Send "stop" command to stop the motor')
-        self.publish_status('moving_up')
+        # X button - Press once for continuous UP
+        if button == 'X':
+            if state == 1:  # Button PRESSED
+                self.continuous_up = True
+                self.continuous_down = False
+                self.plus_button_held = False  # Cancel plus button mode
+                self.last_command_time = time.time()
+                self.get_logger().info('🔼 X pressed → CONTINUOUS UP (press RT/LT to stop)')
+            # Note: Releasing X does NOT stop - only RT/LT stops
+                
+        # Y button - Press once for continuous DOWN
+        elif button == 'Y':
+            if state == 1:  # Button PRESSED
+                self.continuous_down = True
+                self.continuous_up = False
+                self.plus_button_held = False  # Cancel plus button mode
+                self.last_command_time = time.time()
+                self.get_logger().info('🔽 Y pressed → CONTINUOUS DOWN (press RT/LT to stop)')
+            # Note: Releasing Y does NOT stop - only RT/LT stops
+                
+        # RT button - STOP
+        elif button == 'RT':
+            if state == 1:  # Button PRESSED
+                self.continuous_up = False
+                self.continuous_down = False
+                self.plus_button_held = False
+                self.get_logger().info('⏹️ RT pressed → STOP')
+                
+        # LT button - STOP
+        elif button == 'LT':
+            if state == 1:  # Button PRESSED
+                self.continuous_up = False
+                self.continuous_down = False
+                self.plus_button_held = False
+                self.get_logger().info('⏹️ LT pressed → STOP')
+        else:
+            self.get_logger().debug(f'Unhandled button: "{button}"')
     
-    def lift_down(self):
-        """Move actuator down at FULL SPEED - runs continuously until stop"""
-        # CRITICAL SEQUENCE TO PREVENT DIRECTION FLIP:
-        # 1. Ensure PWM is completely OFF
-        self.pwm_line.set_value(0)
-        time.sleep(0.01)  # 10ms delay - longer to ensure motor stops
+    def control_loop(self):
+        """
+        Timer callback that runs at 50Hz (every 20ms)
+        Priority order:
+        1. Plus button hold mode (while button held)
+        2. Continuous UP mode (X button pressed once)
+        3. Continuous DOWN mode (Y button pressed once)
+        4. Stop (none active)
+        """
+        # Priority 1: Plus button hold mode
+        if self.plus_button_held and self.last_plus_direction:
+            if self.last_plus_direction == 'up':
+                self.send_esp32_command(self.current_speed, 1)
+                if self.current_direction != 'plus_up':
+                    self.current_direction = 'plus_up'
+                    self.is_running = True
+                    self.publish_status('plus_up')
+                    self.get_logger().info('🔼 Plus button HELD → Moving UP')
+            else:  # down
+                self.send_esp32_command(self.current_speed, 0)
+                if self.current_direction != 'plus_down':
+                    self.current_direction = 'plus_down'
+                    self.is_running = True
+                    self.publish_status('plus_down')
+                    self.get_logger().info('🔽 Plus button HELD → Moving DOWN')
         
-        # 2. Set direction pin to DOWN - INVERTED: HIGH = DOWN
-        self.dir_line.set_value(1) 
-        time.sleep(0.02)  # 20ms delay - allow direction to stabilize
-        
-        # 3. Enable PWM at FULL SPEED
-        self.pwm_line.set_value(1)
-        
-        self.is_running = True
-        self.current_direction = 'down'
-        
-        self.get_logger().info('🔽 Moving DOWN at FULL SPEED (100%) - RUNNING CONTINUOUSLY')
-        self.get_logger().info('   Send "stop" command to stop the motor')
-        self.publish_status('moving_down')
-    
-    def stop_actuator(self):
-        """Stop actuator movement"""
-        old_direction = self.current_direction
-        
-        # PROPER STOP SEQUENCE:
-        # 1. Stop PWM immediately
-        self.pwm_line.set_value(0)
-        time.sleep(0.02)  # 20ms delay - allow motor to coast down
-        
-        # 2. Reset direction to default (LOW)
-        self.dir_line.set_value(0)
-        
-        self.is_running = False
-        self.current_direction = 'stopped'
-        
-        self.get_logger().info(f'⏹️  Actuator STOPPED (was moving {old_direction})')
-        self.publish_status('stopped')
+        # Priority 2: Continuous UP mode (X button)
+        elif self.continuous_up:
+            self.send_esp32_command(self.current_speed, 1)
+            if self.current_direction != 'continuous_up':
+                self.current_direction = 'continuous_up'
+                self.is_running = True
+                self.publish_status('continuous_up')
+                self.get_logger().info('🔼 X button → Continuous UP active')
+                
+        # Priority 3: Continuous DOWN mode (Y button)
+        elif self.continuous_down:
+            self.send_esp32_command(self.current_speed, 0)
+            if self.current_direction != 'continuous_down':
+                self.current_direction = 'continuous_down'
+                self.is_running = True
+                self.publish_status('continuous_down')
+                self.get_logger().info('🔽 Y button → Continuous DOWN active')
+                
+        # Priority 4: STOP (no active command)
+        else:
+            if self.is_running:
+                self.send_esp32_command(0, 0)
+                old_direction = self.current_direction
+                self.current_direction = 'stopped'
+                self.is_running = False
+                self.publish_status('stopped')
+                self.get_logger().info(f'⏹️ STOPPED (was: {old_direction})')
     
     def publish_status(self, status):
         """Publish current status"""
@@ -167,21 +299,24 @@ class ActuatorControlNode(Node):
         self.status_pub.publish(msg)
     
     def cleanup(self):
-        """Cleanup GPIO on shutdown"""
-        self.get_logger().info('Cleaning up GPIO...')
+        """Cleanup serial connection on shutdown"""
+        self.get_logger().info('Cleaning up actuator control...')
         try:
-            self.is_running = False
+            # Stop motor safely
+            if self.connected and self.ser and self.ser.is_open:
+                try:
+                    self.send_esp32_command(0, 0)  # Stop
+                    time.sleep(0.05)
+                except Exception as e:
+                    self.get_logger().error(f'Error stopping motor: {e}')
+                
+                try:
+                    self.ser.close()
+                except Exception as e:
+                    self.get_logger().error(f'Error closing serial port: {e}')
             
-            # Proper shutdown sequence
-            self.pwm_line.set_value(0)
-            time.sleep(0.02)
-            self.dir_line.set_value(0)
-            time.sleep(0.02)
-            
-            self.pwm_line.release()
-            self.dir_line.release()
-            self.chip.close()
-            self.get_logger().info('GPIO cleanup complete')
+            self.connected = False
+            self.get_logger().info('✓ Actuator cleanup complete')
         except Exception as e:
             self.get_logger().error(f'Cleanup error: {e}')
 
@@ -197,14 +332,26 @@ def main(args=None):
             node.get_logger().info('Keyboard interrupt detected')
     except Exception as e:
         if node:
-            node.get_logger().error(f'Error: {e}')
+            node.get_logger().error(f'Error in node: {e}')
+            import traceback
+            node.get_logger().error(traceback.format_exc())
         else:
             print(f'Failed to initialize node: {e}')
+            import traceback
+            traceback.print_exc()
     finally:
         if node:
-            node.cleanup()
-            node.destroy_node()
-        rclpy.shutdown()
+            try:
+                node.cleanup()
+            except Exception as e:
+                print(f'Cleanup error: {e}')
+            try:
+                node.destroy_node()
+            except Exception as e:
+                print(f'Destroy node error: {e}')
+        
+        if rclpy.ok():
+            rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

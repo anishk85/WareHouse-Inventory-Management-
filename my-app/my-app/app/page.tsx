@@ -5,14 +5,12 @@ import { RealTimeProvider } from "@/components/real-time-provider"
 import Navigation from "@/components/navigation"
 import Dashboard from "@/components/pages/dashboard"
 import ROS2LaunchControl from "@/components/pages/ros2-launch-control"
-import WaypointCreator from "@/components/pages/waypoint-creator"
 import Database from "@/components/pages/database"
 import EnhancedDashboard from "@/components/pages/enhanced-dashboard"
 
 type PageType =
   | "dashboard"
   | "launch"
-  | "waypoint"
   | "database"
   | "control"
 
@@ -27,8 +25,6 @@ function PageContent() {
         return <EnhancedDashboard />
       case "launch":
         return <ROS2LaunchControl />
-      case "waypoint":
-        return <WaypointCreator />
       case "database":
         return <Database />
       default:

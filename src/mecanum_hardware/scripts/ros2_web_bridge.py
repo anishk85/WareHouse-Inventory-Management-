@@ -551,10 +551,16 @@ def main():
         # Set the event loop reference for thread-safe broadcasting
         bridge.loop = asyncio.get_event_loop()
         
+        # Create WebSocket server with proper origin handling
+        async def handler(websocket):
+            await websocket_server(bridge, websocket)
+        
         async with websockets.server.serve(
-            lambda ws: websocket_server(bridge, ws),
+            handler,
             "0.0.0.0",
-            9090
+            9090,
+            # Allow all origins for development
+            origins=None  # None means allow all origins
         ):
             bridge.get_logger().info('=' * 70)
             bridge.get_logger().info('  ROS2 WebSocket Bridge Server Started')

@@ -3,8 +3,8 @@
 
 <!-- Argument for simulation vs hardware mode -->
 <xacro:arg name="use_sim" default="true"/>
-<xacro:arg name="esp1_port" default="/dev/ttyUSB0"/>
-<xacro:arg name="esp2_port" default="/dev/ttyUSB1"/>
+<xacro:arg name="esp1_port" default="/dev/esp_front"/>
+<xacro:arg name="esp2_port" default="/dev/esp_back"/>
 <xacro:arg name="use_depth_camera" default="false"/>
 
 <!-- Include the UNIFIED ros2_control file (handles both sim and hardware) -->

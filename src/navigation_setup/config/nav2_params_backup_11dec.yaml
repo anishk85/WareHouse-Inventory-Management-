@@ -388,14 +388,14 @@ collision_monitor:
     stop_pub_timeout: 2.0
     polygons: ["PolygonStop", "PolygonSlow"]
     PolygonStop:
-      type: "circle"
+      type: "polygon"
       radius: 0.18                                # Very tight
       action_type: "stop"
       min_points: 4
       visualize: true
       polygon_pub_topic: "polygon_stop"
     PolygonSlow:
-      type: "circle"
+      type: "polygon"
       radius: 0.30                                # Reduced
       action_type: "slowdown"
       min_points: 4

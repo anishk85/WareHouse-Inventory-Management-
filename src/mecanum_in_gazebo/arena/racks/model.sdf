@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+  <model name="my_model">
+    <static>true</static>
+    <link name="my_model_link">
+      <visual name="rack">
+        <geometry>
+          <mesh>
+            <uri>meshes/model.dae</uri>
+            <submesh>
+              <name>rack</name>
+            </submesh>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>1.0 1.0 1.0 1.0</diffuse>
+          <specular>0.0 0.0 0.0 1.0</specular>
+          <pbr>
+            <metal/>
+          </pbr>
+        </material>
+      </visual>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>meshes/model.dae</uri>
+          </mesh>
+        </geometry>
+        <surface>
+          <contact/>
+          <collide_bitmask>0x01</collide_bitmask>
+        </surface>
+      </collision>
+    </link>
+  </model>
+</sdf>

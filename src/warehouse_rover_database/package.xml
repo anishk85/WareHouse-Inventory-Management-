@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>warehouse_rover_database</name>
+  <version>1.0.0</version>
+  <description>Database storage for warehouse inventory (SQLite + MongoDB Atlas)</description>
+  <maintainer email="your_email@example.com">Warehouse Rover Team</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
+
+  <!-- C++ Dependencies (for old SQLite node) -->
+  <depend>rclcpp</depend>
+  <depend>warehouse_rover_msgs</depend>
+  <depend>libsqlite3-dev</depend>
+
+  <!-- Python Dependencies (for new MongoDB node) -->
+  <depend>rclpy</depend>
+  <exec_depend>python3-pymongo</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

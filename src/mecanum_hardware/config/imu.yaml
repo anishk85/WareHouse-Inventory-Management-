@@ -1,0 +1,41 @@
+/**:
+  ros__parameters:
+    # IMU Filter Configuration (imu_filter_madgwick or imu_complementary_filter)
+    # ICM-20948: 9-DOF with magnetometer support
+    use_mag: true  # Set true - ICM-20948 has magnetometer!
+    publish_tf: false  # Cartographer handles TF (map→odom→base_link)
+    world_frame: enu  # East-North-Up
+    
+    # Frame IDs
+    fixed_frame: base_link
+    imu_frame: imu_link
+    
+    # Orientation filter parameters (Madgwick)
+    gain: 0.1  # Madgwick filter gain (0.01-0.1, higher = faster convergence but more noise)
+    zeta: 0.001  # Gyroscope drift bias compensation
+    
+    # Magnetic declination (degrees) - adjust for your location
+    # Find yours at: https://www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml
+    # Example: Bangalore, India ≈ -0.5°, Mumbai ≈ -1.0°
+    mag_bias_x: 0.0
+    mag_bias_y: 0.0
+    mag_bias_z: 0.0
+    
+    # Topic remapping
+    imu_topic_in: /imu/data_raw
+    imu_topic_out: /imu/data
+    mag_topic_in: /imu/mag  # Magnetometer topic (ICM-20948)
+
+# IMU Publisher Node Configuration
+imu_publisher:
+  ros__parameters:
+    publish_rate: 100.0  # Hz (ICM-20948 can do up to 1125 Hz)
+    imu_frame: imu_link
+    simulate: false  # Set true for testing without hardware
+
+# Magnetometer Publisher Node Configuration  
+magnetometer_publisher:
+  ros__parameters:
+    publish_rate: 50.0  # Hz (lower than IMU, magnetometer is slower)
+    imu_frame: imu_link
+    simulate: false  # Set true for testing without hardware

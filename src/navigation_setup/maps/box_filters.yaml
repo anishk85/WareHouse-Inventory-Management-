@@ -1,0 +1,14 @@
+scan_to_scan_filter_chain:
+  ros__parameters:
+    filter1:
+      name: robot_body_filter
+      type: laser_filters/LaserScanBoxFilter
+      params:
+        box_frame: base_link
+        max_x: 0.37
+        min_x: -0.37
+        max_y: 0.22
+        min_y: -0.22
+        max_z: 1.0
+        min_z: -0.5
+        invert: false

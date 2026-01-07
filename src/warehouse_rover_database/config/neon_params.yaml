@@ -1,0 +1,20 @@
+/**:
+  ros__parameters:
+    # 🐘 Neon PostgreSQL Connection
+    # 📍 Get your connection string from: https://console.neon.tech
+    # 🔗 Format: postgresql://username:password@ep-xxx.region.aws.neon.tech/dbname?sslmode=require
+    neon_connection_string: "postgresql://neondb_owner:npg_pMn5GrgtEKc4@ep-bitter-king-a5vgvf1n-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    
+    # 🔌 Connection Pool Settings (optimized for Raspberry Pi)
+    min_connections: 1
+    max_connections: 5
+    
+    # 💾 Export Settings
+    auto_export: true
+    export_dir: "/tmp/inventory_exports"
+    
+    # ⏱️ Connection Timeout (seconds)
+    connection_timeout: 30
+    
+    # 🐛 Debug Mode (verbose logging)
+    debug_mode: true

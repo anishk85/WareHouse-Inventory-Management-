@@ -1,0 +1,47 @@
+/**:
+  ros__parameters:
+    # RealSense D435/D455 Configuration
+    serial_no: ''  # Empty = use first available camera
+    usb_port_id: ''
+    device_type: ''
+    
+    # Enable streams
+    enable_depth: true
+    enable_color: true
+    enable_infra1: false
+    enable_infra2: false
+    enable_fisheye: false
+    enable_gyro: false
+    enable_accel: false
+    
+    # Depth module configuration
+    depth_module.profile: 640x480x30
+    depth_module.visual_preset: High Accuracy  # Default, High Accuracy, High Density, Medium Density
+    
+    # RGB camera configuration
+    rgb_camera.profile: 640x480x30
+    rgb_camera.auto_exposure_priority: false
+    
+    # Processing modules
+    align_depth.enable: true
+    spatial_filter.enable: true
+    temporal_filter.enable: true
+    hole_filling_filter.enable: true
+    decimation_filter.enable: false
+    
+    # Point cloud
+    pointcloud.enable: true
+    pointcloud.stream_filter: 2  # 0=Any, 1=Color, 2=Depth
+    pointcloud.stream_index_filter: 0
+    
+    # TF frames
+    base_frame_id: camera_link
+    depth_frame_id: camera_depth_frame
+    color_frame_id: camera_color_frame
+    depth_optical_frame_id: camera_depth_optical_frame
+    color_optical_frame_id: camera_color_optical_frame
+    
+    # Topic names
+    depth_topic: /camera/depth/image_rect_raw
+    color_topic: /camera/color/image_raw
+    pointcloud_topic: /camera/depth/color/points

@@ -63,6 +63,18 @@ For YouTube: Use the embed format shown in the comments.
 
 ---
 
+## 📊 Presentation & Architecture
+
+<div align="center">
+
+📑 **[View Our Presentation](https://docs.google.com/presentation/d/1cAEmNjcDwh8xOOG8gRH6w87--OZm0wdz/edit?slide=id.p1#slide=id.p1)**
+
+*Complete system architecture, design decisions, and implementation details*
+
+</div>
+
+---
+
 ## ✨ Highlights
 
 | Feature | Description |

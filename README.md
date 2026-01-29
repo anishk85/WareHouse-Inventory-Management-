@@ -29,27 +29,15 @@ For YouTube: Use the embed format shown in the comments.
 
 <div align="center">
 
-### 🎬 Hardware Navigation Demo
-[![Hardware Navigation Demo](https://drive.google.com/thumbnail?id=1SxE7VbpoMyJDe-7mRSphyiXIrN796s2v&sz=w640)](https://drive.google.com/file/d/1SxE7VbpoMyJDe-7mRSphyiXIrN796s2v/view?usp=sharing)
-> **[Watch Video](https://drive.google.com/file/d/1SxE7VbpoMyJDe-7mRSphyiXIrN796s2v/view?usp=sharing)**
+| 🎬 Hardware Navigation | 🤖 MPPI Controller |
+|:---:|:---:|
+| [![Hardware Navigation](https://drive.google.com/thumbnail?id=1SxE7VbpoMyJDe-7mRSphyiXIrN796s2v&sz=w480)](https://drive.google.com/file/d/1SxE7VbpoMyJDe-7mRSphyiXIrN796s2v/view?usp=sharing) | [![MPPI Demo](https://drive.google.com/thumbnail?id=1yMgr9xhQmlWIOJ6BMVuErapGLEkPWAD1&sz=w480)](https://drive.google.com/file/d/1yMgr9xhQmlWIOJ6BMVuErapGLEkPWAD1/view?usp=sharing) |
+| [Watch Video](https://drive.google.com/file/d/1SxE7VbpoMyJDe-7mRSphyiXIrN796s2v/view?usp=sharing) | [Watch Video](https://drive.google.com/file/d/1yMgr9xhQmlWIOJ6BMVuErapGLEkPWAD1/view?usp=sharing) |
 
----
-
-### 🤖 MPPI Controller Demo
-[![MPPI Demo](https://drive.google.com/thumbnail?id=1yMgr9xhQmlWIOJ6BMVuErapGLEkPWAD1&sz=w640)](https://drive.google.com/file/d/1yMgr9xhQmlWIOJ6BMVuErapGLEkPWAD1/view?usp=sharing)
-> **[Watch Video](https://drive.google.com/file/d/1yMgr9xhQmlWIOJ6BMVuErapGLEkPWAD1/view?usp=sharing)**
-
----
-
-### 📱 QR Code Scanning
-[![QR Scanning](https://drive.google.com/thumbnail?id=1jlzJpVaomlOkv6ThRwU9cso8ifu2L015&sz=w640)](https://drive.google.com/file/d/1jlzJpVaomlOkv6ThRwU9cso8ifu2L015/view?usp=sharing)
-> **[Watch Video](https://drive.google.com/file/d/1jlzJpVaomlOkv6ThRwU9cso8ifu2L015/view?usp=sharing)**
-
----
-
-### 🛡️ Lift Safety System (Optical Flow)
-[![Optical Flow Safety](https://drive.google.com/thumbnail?id=19zjg4Hd4r4iTfHF7JOrHWgnWNKGa0Jsm&sz=w640)](https://drive.google.com/file/d/19zjg4Hd4r4iTfHF7JOrHWgnWNKGa0Jsm/view?usp=sharing)
-> **[Watch Video](https://drive.google.com/file/d/19zjg4Hd4r4iTfHF7JOrHWgnWNKGa0Jsm/view?usp=sharing)**
+| 📱 QR Code Scanning | 🛡️ Optical Flow Safety |
+|:---:|:---:|
+| [![QR Scanning](https://drive.google.com/thumbnail?id=1jlzJpVaomlOkv6ThRwU9cso8ifu2L015&sz=w480)](https://drive.google.com/file/d/1jlzJpVaomlOkv6ThRwU9cso8ifu2L015/view?usp=sharing) | [![Optical Flow](https://drive.google.com/thumbnail?id=19zjg4Hd4r4iTfHF7JOrHWgnWNKGa0Jsm&sz=w480)](https://drive.google.com/file/d/19zjg4Hd4r4iTfHF7JOrHWgnWNKGa0Jsm/view?usp=sharing) |
+| [Watch Video](https://drive.google.com/file/d/1jlzJpVaomlOkv6ThRwU9cso8ifu2L015/view?usp=sharing) | [Watch Video](https://drive.google.com/file/d/19zjg4Hd4r4iTfHF7JOrHWgnWNKGa0Jsm/view?usp=sharing) |
 
 </div>
 
@@ -59,10 +47,17 @@ For YouTube: Use the embed format shown in the comments.
 
 <div align="center">
 
-| Robot Front View | Robot Side View |
-|:---:|:---:|
-| <img src="https://drive.google.com/thumbnail?id=12Bs6bJ0aVyArBRewj-XbltesIlnt_Ru9" height="300" /> | <img src="https://drive.google.com/thumbnail?id=1eT09PdCcN59-oF_Ee70JCgp37965IalH" height="300" /> |
-| [View Image](https://drive.google.com/file/d/12Bs6bJ0aVyArBRewj-XbltesIlnt_Ru9/view?usp=sharing) | [View Image](https://drive.google.com/file/d/1eT09PdCcN59-oF_Ee70JCgp37965IalH/view?usp=sharing) |
+### 🤖 Robot Overview
+<a href="https://drive.google.com/file/d/12Bs6bJ0aVyArBRewj-XbltesIlnt_Ru9/view?usp=sharing">
+  <img src="https://drive.google.com/thumbnail?id=12Bs6bJ0aVyArBRewj-XbltesIlnt_Ru9&sz=w800" width="700" alt="Robot Front View" />
+</a>
+
+<br/><br/>
+
+### 🏗️ Scissor Lift Mechanism
+<a href="https://drive.google.com/file/d/1eT09PdCcN59-oF_Ee70JCgp37965IalH/view?usp=sharing">
+  <img src="https://drive.google.com/thumbnail?id=1eT09PdCcN59-oF_Ee70JCgp37965IalH&sz=w800" width="500" alt="Scissor Lift Side View" />
+</a>
 
 </div>
 
@@ -275,16 +270,6 @@ cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(2.0, cv::Size(8, 8));
 clahe->apply(gray_image, enhanced);
 ```
 
-### Processing Modes
-
-| Mode | Resolution | Hardware | Use Case |
-|------|------------|----------|----------|
-| `CUDA_AGGRESSIVE` | 1920×1080 | RTX 4070 | Development |
-| `CUDA_OPTIMIZED` | 1280×720 | Jetson Orin | Edge deployment |
-| `CPU_OPTIMIZED` | 1280×720 | Raspberry Pi 5 | Production |
-| `CPU_BASIC` | 640×480 | Raspberry Pi 4 | Fallback |
-
----
 
 ## 🛡️ Lift Safety System
 

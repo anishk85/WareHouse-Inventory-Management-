@@ -9,7 +9,7 @@
 [![Neon Database](https://img.shields.io/badge/Neon-PostgreSQL-00e599?logo=postgresql)](https://neon.tech/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue)](LICENSE)
 
-### 🥉 **Bronze Medal Winner** | Inter IIT Tech Meet 13.0
+### 🥉 **Bronze Medal Winner** | Inter IIT Tech Meet 14.0
 
 **Problem Statement by Eternal: Autonomous Inventory Management**
 

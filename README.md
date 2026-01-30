@@ -544,7 +544,6 @@ During the demo, the robot scanned **12 out of 15 QR codes**. The architecture a
 |--------|-------|
 | **QR Codes Scanned** | 12 / 15 (80%) |
 | **Navigation Success** | Autonomous navigation demonstrated |
-| **Recovery Time** | Full stack migration in ~4 hours |
 | **Final Position** | 🥉 Bronze Medal (3rd Place) |
 
 ---

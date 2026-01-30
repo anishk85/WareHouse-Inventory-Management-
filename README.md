@@ -556,10 +556,11 @@ During the demo, the robot scanned **12 out of 15 QR codes**. The architecture a
 
 | Name | Role |
 |------|------|
-| **Niwesh Sah** | Team Member |
 | **Sukhvansh Jain** | Team Member |
 | **Sumit Sahu** | Team Member |
+| **Niwesh Sah** | Team Member |
 | **Shubham Meena** | Team Member |
+| **Anish Kumar** | Team Member |
 | **Parth Gawande** | Team Member |
 | **Rohit Jangra** | Team Member |
 | **Pranab Pandey** | Team Member |
